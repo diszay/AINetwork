@@ -15,7 +15,7 @@ from src.netarchon.models.connection import (
     ConnectionStatus,
     CommandResult
 )
-from src.netarchon.utils.exceptions import DeviceError
+from src.netarchon.utils.exceptions import DeviceError, UnsupportedDeviceError
 
 
 class TestDeviceDetector:
@@ -443,3 +443,254 @@ class TestDeviceDetector:
         assert self.detector._test_netconf_capability() is False
         assert self.detector._test_restapi_capability() is False
         assert self.detector._test_scp_capability() is True
+
+
+class TestCapabilityManager:
+    """Test CapabilityManager class."""
+    
+    def setup_method(self):
+        """Set up test fixtures."""
+        from src.netarchon.core.device_manager import CapabilityManager
+        
+        self.manager = CapabilityManager()
+        self.connection = ConnectionInfo(
+            device_id="router1",
+            host="192.168.1.1",
+            port=22,
+            username="admin",
+            connection_type=ConnectionType.SSH,
+            established_at=datetime.utcnow(),
+            last_activity=datetime.utcnow(),
+            status=ConnectionStatus.CONNECTED
+        )
+        
+        # Create sample device profile
+        self.cisco_profile = DeviceProfile(
+            device_type=DeviceType.CISCO_IOS,
+            vendor="Cisco",
+            model="ISR4321",
+            os_version="16.09.04",
+            capabilities=["ssh", "snmp", "scp"],
+            command_syntax={
+                "show_version": "show version",
+                "ping": "ping {target}",
+                "show_interfaces": "show interfaces"
+            }
+        )
+    
+    def test_manager_initialization(self):
+        """Test capability manager initialization."""
+        from src.netarchon.core.device_manager import CapabilityManager
+        
+        manager = CapabilityManager()
+        assert manager.logger is not None
+        assert manager.command_executor is not None
+        assert len(manager.device_profiles) == 0
+        assert len(manager.fallback_commands) > 0
+        assert 'show_version' in manager.fallback_commands
+    
+    def test_register_device_profile(self):
+        """Test registering device profile."""
+        self.manager.register_device_profile("router1", self.cisco_profile)
+        
+        assert "router1" in self.manager.device_profiles
+        assert self.manager.device_profiles["router1"] == self.cisco_profile
+    
+    def test_get_device_profile_existing(self):
+        """Test getting existing device profile."""
+        self.manager.register_device_profile("router1", self.cisco_profile)
+        
+        profile = self.manager.get_device_profile("router1")
+        assert profile == self.cisco_profile
+    
+    def test_get_device_profile_nonexistent(self):
+        """Test getting non-existent device profile."""
+        profile = self.manager.get_device_profile("nonexistent")
+        assert profile is None
+    
+    def test_has_capability_with_profile(self):
+        """Test capability check with registered profile."""
+        self.manager.register_device_profile("router1", self.cisco_profile)
+        
+        assert self.manager.has_capability("router1", "ssh") is True
+        assert self.manager.has_capability("router1", "snmp") is True
+        assert self.manager.has_capability("router1", "netconf") is False
+    
+    def test_has_capability_without_profile(self):
+        """Test capability check without registered profile."""
+        # Should fall back to basic capabilities
+        assert self.manager.has_capability("unknown", "ssh") is True
+        assert self.manager.has_capability("unknown", "ping") is True
+        assert self.manager.has_capability("unknown", "netconf") is False
+    
+    def test_get_command_for_device_with_profile(self):
+        """Test getting command with registered profile."""
+        self.manager.register_device_profile("router1", self.cisco_profile)
+        
+        command = self.manager.get_command_for_device("router1", "show_version")
+        assert command == "show version"
+        
+        command = self.manager.get_command_for_device("router1", "ping", target="8.8.8.8")
+        assert command == "ping 8.8.8.8"
+    
+    def test_get_command_for_device_fallback(self):
+        """Test getting command with fallback for unknown device."""
+        command = self.manager.get_command_for_device("unknown", "show_version")
+        assert command in ["show version", "version", "show system version"]
+        
+        command = self.manager.get_command_for_device("unknown", "ping", target="8.8.8.8")
+        assert "8.8.8.8" in command
+    
+    def test_get_command_for_device_missing_parameter(self):
+        """Test getting command with missing parameter."""
+        self.manager.register_device_profile("router1", self.cisco_profile)
+        
+        with pytest.raises(UnsupportedDeviceError) as exc_info:
+            self.manager.get_command_for_device("router1", "ping")  # Missing target
+        
+        assert "Missing parameter" in str(exc_info.value)
+        assert exc_info.value.details["missing_param"] == "'target'"
+    
+    def test_get_command_for_device_unsupported(self):
+        """Test getting unsupported command."""
+        with pytest.raises(UnsupportedDeviceError) as exc_info:
+            self.manager.get_command_for_device("router1", "unsupported_command")
+        
+        assert "not supported" in str(exc_info.value)
+    
+    @patch('src.netarchon.core.device_manager.CommandExecutor')
+    def test_execute_adapted_command_success(self, mock_executor_class):
+        """Test successful adapted command execution."""
+        mock_executor = Mock()
+        mock_executor_class.return_value = mock_executor
+        
+        # Mock successful command result
+        success_result = CommandResult(
+            success=True,
+            output="Version 16.09.04",
+            error="",
+            execution_time=1.0,
+            timestamp=datetime.utcnow(),
+            command="show version",
+            device_id="router1"
+        )
+        mock_executor.execute_command.return_value = success_result
+        
+        # Register profile and execute
+        manager = CapabilityManager()
+        manager.register_device_profile("router1", self.cisco_profile)
+        
+        result = manager.execute_adapted_command(self.connection, "show_version")
+        
+        assert result.success is True
+        assert result.output == "Version 16.09.04"
+        assert hasattr(result, 'additional_data')
+        assert result.additional_data['command_type'] == 'show_version'
+        
+        mock_executor.execute_command.assert_called_once_with(self.connection, "show version")
+    
+    @patch('src.netarchon.core.device_manager.CommandExecutor')
+    def test_execute_adapted_command_failure(self, mock_executor_class):
+        """Test adapted command execution failure."""
+        mock_executor = Mock()
+        mock_executor_class.return_value = mock_executor
+        mock_executor.execute_command.side_effect = Exception("Command failed")
+        
+        manager = CapabilityManager()
+        result = manager.execute_adapted_command(self.connection, "show_version")
+        
+        assert result.success is False
+        assert "Command adaptation failed" in result.error
+    
+    @patch('src.netarchon.core.device_manager.CommandExecutor')
+    def test_test_device_capabilities(self, mock_executor_class):
+        """Test device capability testing."""
+        mock_executor = Mock()
+        mock_executor_class.return_value = mock_executor
+        
+        # Mock various command results
+        mock_executor.execute_command.side_effect = [
+            # Basic commands test
+            CommandResult(True, "Version info", "", 1.0, datetime.utcnow(), "show version", "router1"),
+            # Privilege escalation test
+            CommandResult(True, "OK", "", 1.0, datetime.utcnow(), "enable", "router1"),
+            # Configuration commands test
+            CommandResult(True, "Config", "", 1.0, datetime.utcnow(), "show running-config", "router1"),
+            # File operations test
+            CommandResult(True, "Directory listing", "", 1.0, datetime.utcnow(), "dir", "router1"),
+            # Network commands test
+            CommandResult(True, "Ping results", "", 1.0, datetime.utcnow(), "ping 127.0.0.1", "router1")
+        ]
+        
+        manager = CapabilityManager()
+        manager.register_device_profile("router1", self.cisco_profile)
+        
+        results = manager.test_device_capabilities(self.connection)
+        
+        assert isinstance(results, dict)
+        assert len(results) == 5
+        assert 'basic_commands' in results
+        assert 'privilege_escalation' in results
+        assert 'configuration_commands' in results
+        assert 'file_operations' in results
+        assert 'network_commands' in results
+    
+    def test_update_device_capabilities(self):
+        """Test updating device capabilities."""
+        self.manager.register_device_profile("router1", self.cisco_profile)
+        
+        initial_count = len(self.cisco_profile.capabilities)
+        self.manager.update_device_capabilities("router1", ["netconf", "restapi"])
+        
+        profile = self.manager.get_device_profile("router1")
+        assert len(profile.capabilities) > initial_count
+        assert "netconf" in profile.capabilities
+        assert "restapi" in profile.capabilities
+    
+    def test_update_device_capabilities_no_profile(self):
+        """Test updating capabilities for non-existent profile."""
+        # Should not raise exception
+        self.manager.update_device_capabilities("nonexistent", ["netconf"])
+    
+    def test_get_supported_commands_with_profile(self):
+        """Test getting supported commands with profile."""
+        self.manager.register_device_profile("router1", self.cisco_profile)
+        
+        commands = self.manager.get_supported_commands("router1")
+        
+        assert isinstance(commands, list)
+        assert "show_version" in commands
+        assert "ping" in commands
+        assert "show_interfaces" in commands
+    
+    def test_get_supported_commands_without_profile(self):
+        """Test getting supported commands without profile."""
+        commands = self.manager.get_supported_commands("unknown")
+        
+        assert isinstance(commands, list)
+        assert "show_version" in commands
+        assert "ping" in commands
+        # Should be fallback commands
+        assert len(commands) == len(self.manager.fallback_commands)
+    
+    def test_capability_test_methods(self):
+        """Test individual capability test methods."""
+        # These are internal methods, so we test them directly
+        
+        # Mock successful command execution for basic commands test
+        with patch.object(self.manager, 'execute_adapted_command') as mock_exec:
+            mock_exec.return_value = CommandResult(
+                True, "Version info", "", 1.0, datetime.utcnow(), "show version", "router1"
+            )
+            
+            result = self.manager._test_basic_commands(self.connection)
+            assert result is True
+        
+        # Test with failed command
+        with patch.object(self.manager, 'execute_adapted_command') as mock_exec:
+            mock_exec.return_value = CommandResult(
+                False, "", "Command failed", 1.0, datetime.utcnow(), "show version", "router1"
+            )
+            
+            result = self.manager._test_basic_commands(self.connection)
+            assert result is False

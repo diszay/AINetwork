@@ -445,3 +445,291 @@ class DeviceDetector:
         }
         
         return syntax_maps.get(device_type, syntax_maps[DeviceType.GENERIC])
+
+
+class CapabilityManager:
+    """Manages device capabilities and command syntax adaptation."""
+    
+    def __init__(self):
+        """Initialize capability manager."""
+        self.logger = get_logger(f"{__name__}.CapabilityManager")
+        self.device_profiles: Dict[str, DeviceProfile] = {}
+        self.command_executor = CommandExecutor()
+        
+        # Fallback command mappings for unknown devices
+        self.fallback_commands = {
+            'show_version': ['show version', 'version', 'show system version'],
+            'show_interfaces': ['show interfaces', 'show interface', 'show ports'],
+            'show_ip_route': ['show ip route', 'show route', 'show routing-table'],
+            'ping': ['ping {target}', 'ping -c 4 {target}'],
+            'traceroute': ['traceroute {target}', 'tracert {target}']
+        }
+    
+    def register_device_profile(self, device_id: str, profile: DeviceProfile) -> None:
+        """Register a device profile for capability management.
+        
+        Args:
+            device_id: Unique device identifier
+            profile: Device profile with capabilities and command syntax
+        """
+        self.device_profiles[device_id] = profile
+        self.logger.info(f"Device profile registered",
+                        device_id=device_id,
+                        device_type=profile.device_type.value,
+                        capabilities_count=len(profile.capabilities))
+    
+    def get_device_profile(self, device_id: str) -> Optional[DeviceProfile]:
+        """Get device profile by device ID.
+        
+        Args:
+            device_id: Device identifier
+            
+        Returns:
+            DeviceProfile if found, None otherwise
+        """
+        return self.device_profiles.get(device_id)
+    
+    def has_capability(self, device_id: str, capability: str) -> bool:
+        """Check if device has specific capability.
+        
+        Args:
+            device_id: Device identifier
+            capability: Capability to check
+            
+        Returns:
+            True if device has capability, False otherwise
+        """
+        profile = self.device_profiles.get(device_id)
+        if profile:
+            return profile.has_capability(capability)
+        
+        # Conservative default for unknown devices
+        basic_capabilities = ['ssh', 'ping']
+        return capability in basic_capabilities
+    
+    def get_command_for_device(self, device_id: str, command_type: str, **kwargs) -> str:
+        """Get device-specific command syntax.
+        
+        Args:
+            device_id: Device identifier
+            command_type: Type of command (e.g., 'show_version', 'ping')
+            **kwargs: Command parameters (e.g., target for ping)
+            
+        Returns:
+            Device-specific command string
+            
+        Raises:
+            UnsupportedDeviceError: If command is not supported
+        """
+        profile = self.device_profiles.get(device_id)
+        
+        if profile:
+            command_template = profile.get_command(command_type)
+            if command_template:
+                try:
+                    return command_template.format(**kwargs)
+                except KeyError as e:
+                    raise UnsupportedDeviceError(
+                        f"Missing parameter {e} for command {command_type}",
+                        {"device_id": device_id, "command_type": command_type, "missing_param": str(e)}
+                    )
+        
+        # Try fallback commands for unknown devices
+        if command_type in self.fallback_commands:
+            for fallback_template in self.fallback_commands[command_type]:
+                try:
+                    return fallback_template.format(**kwargs)
+                except KeyError:
+                    continue
+        
+        raise UnsupportedDeviceError(
+            f"Command type '{command_type}' not supported for device {device_id}",
+            {"device_id": device_id, "command_type": command_type}
+        )
+    
+    def execute_adapted_command(self, 
+                               connection: ConnectionInfo,
+                               command_type: str,
+                               **kwargs) -> CommandResult:
+        """Execute command using device-specific syntax adaptation.
+        
+        Args:
+            connection: Active connection to the device
+            command_type: Type of command to execute
+            **kwargs: Command parameters
+            
+        Returns:
+            CommandResult with execution details
+        """
+        try:
+            # Get device-specific command
+            command = self.get_command_for_device(
+                connection.device_id, command_type, **kwargs
+            )
+            
+            self.logger.info(f"Executing adapted command: {command}",
+                           device_id=connection.device_id,
+                           command_type=command_type,
+                           adapted_command=command)
+            
+            # Execute the command
+            result = self.command_executor.execute_command(connection, command)
+            
+            # Add metadata about command adaptation
+            if not hasattr(result, 'additional_data'):
+                result.additional_data = {}
+            
+            result.additional_data.update({
+                'command_type': command_type,
+                'adapted_from': command_type,
+                'original_parameters': kwargs
+            })
+            
+            return result
+            
+        except Exception as e:
+            self.logger.error(f"Adapted command execution failed: {str(e)}",
+                            device_id=connection.device_id,
+                            command_type=command_type,
+                            error=str(e))
+            
+            # Return failed result
+            return CommandResult(
+                success=False,
+                output="",
+                error=f"Command adaptation failed: {str(e)}",
+                execution_time=0.0,
+                timestamp=datetime.utcnow(),
+                command=f"{command_type} (adaptation failed)",
+                device_id=connection.device_id
+            )
+    
+    def test_device_capabilities(self, connection: ConnectionInfo) -> Dict[str, bool]:
+        """Test various capabilities on a device.
+        
+        Args:
+            connection: Active connection to the device
+            
+        Returns:
+            Dictionary mapping capability names to test results
+        """
+        self.logger.info("Testing device capabilities",
+                        device_id=connection.device_id)
+        
+        capability_tests = {
+            'basic_commands': self._test_basic_commands,
+            'privilege_escalation': self._test_privilege_escalation,
+            'configuration_commands': self._test_configuration_commands,
+            'file_operations': self._test_file_operations,
+            'network_commands': self._test_network_commands
+        }
+        
+        results = {}
+        
+        for capability, test_func in capability_tests.items():
+            try:
+                results[capability] = test_func(connection)
+                self.logger.debug(f"Capability test result: {capability} = {results[capability]}",
+                                device_id=connection.device_id)
+            except Exception as e:
+                self.logger.warning(f"Capability test failed for {capability}: {str(e)}",
+                                  device_id=connection.device_id)
+                results[capability] = False
+        
+        self.logger.info(f"Capability testing completed",
+                        device_id=connection.device_id,
+                        passed_tests=sum(results.values()),
+                        total_tests=len(results))
+        
+        return results
+    
+    def update_device_capabilities(self, device_id: str, capabilities: List[str]) -> None:
+        """Update device capabilities based on testing results.
+        
+        Args:
+            device_id: Device identifier
+            capabilities: List of confirmed capabilities
+        """
+        profile = self.device_profiles.get(device_id)
+        if profile:
+            # Add new capabilities
+            for capability in capabilities:
+                profile.add_capability(capability)
+            
+            self.logger.info(f"Device capabilities updated",
+                           device_id=device_id,
+                           total_capabilities=len(profile.capabilities))
+        else:
+            self.logger.warning(f"Cannot update capabilities - device profile not found",
+                              device_id=device_id)
+    
+    def get_supported_commands(self, device_id: str) -> List[str]:
+        """Get list of supported command types for a device.
+        
+        Args:
+            device_id: Device identifier
+            
+        Returns:
+            List of supported command type names
+        """
+        profile = self.device_profiles.get(device_id)
+        if profile:
+            return list(profile.command_syntax.keys())
+        
+        # Return basic fallback commands for unknown devices
+        return list(self.fallback_commands.keys())
+    
+    def _test_basic_commands(self, connection: ConnectionInfo) -> bool:
+        """Test basic show commands."""
+        try:
+            result = self.execute_adapted_command(connection, 'show_version')
+            return result.success and len(result.output) > 0
+        except:
+            return False
+    
+    def _test_privilege_escalation(self, connection: ConnectionInfo) -> bool:
+        """Test privilege escalation capability."""
+        try:
+            # This would require enable password, so we'll just check if the device
+            # responds to enable command without actually escalating
+            result = self.command_executor.execute_command(connection, 'enable')
+            # If it doesn't error immediately, privilege escalation might be supported
+            return True
+        except:
+            return False
+    
+    def _test_configuration_commands(self, connection: ConnectionInfo) -> bool:
+        """Test configuration-related commands."""
+        try:
+            result = self.execute_adapted_command(connection, 'show_running_config')
+            return result.success
+        except:
+            # Try alternative configuration commands
+            try:
+                result = self.command_executor.execute_command(connection, 'show configuration')
+                return result.success
+            except:
+                return False
+    
+    def _test_file_operations(self, connection: ConnectionInfo) -> bool:
+        """Test file operation capabilities."""
+        try:
+            # Test directory listing
+            result = self.command_executor.execute_command(connection, 'dir')
+            if result.success:
+                return True
+            
+            # Try alternative
+            result = self.command_executor.execute_command(connection, 'ls')
+            return result.success
+        except:
+            return False
+    
+    def _test_network_commands(self, connection: ConnectionInfo) -> bool:
+        """Test network diagnostic commands."""
+        try:
+            # Test ping to localhost
+            result = self.execute_adapted_command(connection, 'ping', target='127.0.0.1')
+            return result.success
+        except:
+            return False
