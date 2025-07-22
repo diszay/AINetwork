@@ -1,0 +1,32 @@
+# NetArchon AI Network Engineer - Service Dependencies
+# Required services and libraries for running the NetArchon application
+
+# Core SSH connectivity
+paramiko>=2.9.0,<4.0.0
+
+# Testing framework
+pytest>=7.0.0,<9.0.0
+pytest-cov>=4.0.0,<6.0.0
+pytest-asyncio>=0.21.0,<1.0.0
+
+# Configuration management
+pyyaml>=6.0,<7.0.0
+
+# Development and code quality
+black>=22.0.0,<25.0.0
+flake8>=4.0.0,<7.0.0
+mypy>=1.0.0,<2.0.0
+
+# Optional: Web interface dependencies (future implementation)
+# flask>=2.0.0,<4.0.0
+# flask-restful>=0.3.9,<1.0.0
+
+# Optional: Database support (future implementation)  
+# sqlalchemy>=1.4.0,<3.0.0
+# alembic>=1.8.0,<2.0.0
+
+# Optional: Monitoring and metrics (future implementation)
+# prometheus-client>=0.14.0,<1.0.0
+# grafana-api>=1.0.0,<2.0.0
+
+# Python version requirement: >=3.9,<4.0

@@ -577,6 +577,7 @@ class TestCapabilityManager:
         mock_executor.execute_command.return_value = success_result
         
         # Register profile and execute
+        from src.netarchon.core.device_manager import CapabilityManager
         manager = CapabilityManager()
         manager.register_device_profile("router1", self.cisco_profile)
         
@@ -596,6 +597,7 @@ class TestCapabilityManager:
         mock_executor_class.return_value = mock_executor
         mock_executor.execute_command.side_effect = Exception("Command failed")
         
+        from src.netarchon.core.device_manager import CapabilityManager
         manager = CapabilityManager()
         result = manager.execute_adapted_command(self.connection, "show_version")
         
@@ -622,6 +624,7 @@ class TestCapabilityManager:
             CommandResult(True, "Ping results", "", 1.0, datetime.utcnow(), "ping 127.0.0.1", "router1")
         ]
         
+        from src.netarchon.core.device_manager import CapabilityManager
         manager = CapabilityManager()
         manager.register_device_profile("router1", self.cisco_profile)
         
