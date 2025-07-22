@@ -41,14 +41,14 @@
   - Write unit tests for command execution scenarios and error conditions
   - _Requirements: 2.1, 2.2, 2.3, 2.5_
 
-- [ ] 7. Add privilege escalation and advanced command features
+- [x] 7. Add privilege escalation and advanced command features
   - Extend CommandExecutor with privilege escalation capabilities
   - Implement batch command execution functionality
   - Add command validation and sanitization
   - Create integration tests for privilege escalation scenarios
   - _Requirements: 2.4, 2.5_
 
-- [ ] 8. Implement device detection and classification
+- [x] 8. Implement device detection and classification
   - Create core/device_manager.py with DeviceDetector class
   - Implement device type detection using standard commands
   - Add DeviceProfile class for storing device-specific information

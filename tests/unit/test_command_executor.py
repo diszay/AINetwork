@@ -2,6 +2,7 @@
 Unit tests for NetArchon command executor.
 """
 
+import socket
 import time
 from datetime import datetime
 from unittest.mock import Mock, patch, MagicMock
@@ -455,3 +456,138 @@ class TestResponseProcessor:
         output = "Line 1\nLine 2\nLine 3\nLine 4"
         metadata = self.processor._extract_metadata("show version", output)
         assert metadata['output_lines'] == 4
+
+
+class TestPrivilegeEscalation:
+    """Test privilege escalation functionality."""
+    
+    def setup_method(self):
+        """Set up test fixtures."""
+        self.executor = CommandExecutor(default_timeout=10)
+        self.connection = ConnectionInfo(
+            device_id="router1",
+            host="192.168.1.1",
+            port=22,
+            username="admin",
+            connection_type=ConnectionType.SSH,
+            established_at=datetime.utcnow(),
+            last_activity=datetime.utcnow(),
+            status=ConnectionStatus.CONNECTED
+        )
+    
+    def test_privilege_escalation_success(self):
+        """Test successful privilege escalation."""
+        # Mock shell interaction
+        mock_shell = Mock()
+        mock_shell.recv.side_effect = [
+            b"router>",  # Initial prompt
+            b"Password:",  # Enable password prompt
+            b"router#",  # Privileged prompt after enable
+            b"Version 16.09.04\nrouter#",  # Command output
+        ]
+        
+        mock_ssh_client = Mock()
+        mock_ssh_client.invoke_shell.return_value = mock_shell
+        
+        self.connection._ssh_client = mock_ssh_client
+        
+        result = self.executor.execute_with_privilege(
+            self.connection, "show version", "enable123"
+        )
+        
+        assert result.success is True
+        assert "Version 16.09.04" in result.output
+        assert result.command == "show version"
+        assert result.device_id == "router1"
+        
+        # Verify shell interactions
+        mock_ssh_client.invoke_shell.assert_called_once()
+        mock_shell.send.assert_any_call('enable\n')
+        mock_shell.send.assert_any_call('enable123\n')
+        mock_shell.send.assert_any_call('show version\n')
+        mock_shell.send.assert_any_call('exit\n')
+        mock_shell.close.assert_called_once()
+    
+    def test_privilege_escalation_no_password_needed(self):
+        """Test privilege escalation when no password is needed."""
+        mock_shell = Mock()
+        mock_shell.recv.side_effect = [
+            b"router>",  # Initial prompt
+            b"router#",  # Privileged prompt (no password needed)
+            b"Version 16.09.04\nrouter#",  # Command output
+        ]
+        
+        mock_ssh_client = Mock()
+        mock_ssh_client.invoke_shell.return_value = mock_shell
+        
+        self.connection._ssh_client = mock_ssh_client
+        
+        result = self.executor.execute_with_privilege(
+            self.connection, "show version", "enable123"
+        )
+        
+        assert result.success is True
+        # Should not send password if not prompted
+        calls = [call[0][0] for call in mock_shell.send.call_args_list]
+        assert 'enable123\n' not in calls
+    
+    def test_privilege_escalation_invalid_password(self):
+        """Test privilege escalation with invalid password."""
+        mock_shell = Mock()
+        mock_shell.recv.side_effect = [
+            b"router>",  # Initial prompt
+            b"Password:",  # Enable password prompt
+            b"Access denied",  # Invalid password response
+        ]
+        
+        mock_ssh_client = Mock()
+        mock_ssh_client.invoke_shell.return_value = mock_shell
+        
+        self.connection._ssh_client = mock_ssh_client
+        
+        result = self.executor.execute_with_privilege(
+            self.connection, "show version", "wrongpass"
+        )
+        
+        assert result.success is False
+        assert "Privileged execution failed" in result.error
+    
+    def test_privilege_escalation_no_ssh_client(self):
+        """Test privilege escalation without SSH client."""
+        with pytest.raises(CommandExecutionError) as exc_info:
+            self.executor.execute_with_privilege(
+                self.connection, "show version", "enable123"
+            )
+        
+        assert "No active SSH connection" in str(exc_info.value)
+    
+    def test_privilege_escalation_timeout(self):
+        """Test privilege escalation timeout."""
+        mock_shell = Mock()
+        mock_shell.recv.side_effect = socket.timeout("Timeout")
+        
+        mock_ssh_client = Mock()
+        mock_ssh_client.invoke_shell.return_value = mock_shell
+        
+        self.connection._ssh_client = mock_ssh_client
+        
+        result = self.executor.execute_with_privilege(
+            self.connection, "show version", "enable123", timeout=5
+        )
+        
+        assert result.success is False
+        assert "Privileged execution failed" in result.error
+    
+    def test_privilege_escalation_exception(self):
+        """Test privilege escalation with general exception."""
+        mock_ssh_client = Mock()
+        mock_ssh_client.invoke_shell.side_effect = Exception("Connection lost")
+        
+        self.connection._ssh_client = mock_ssh_client
+        
+        result = self.executor.execute_with_privilege(
+            self.connection, "show version", "enable123"
+        )
+        
+        assert result.success is False
+        assert "Connection lost" in result.error

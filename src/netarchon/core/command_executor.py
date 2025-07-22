@@ -4,6 +4,7 @@ NetArchon Command Execution Module
 Framework for executing commands on network devices with proper error handling.
 """
 
+import socket
 import time
 from datetime import datetime
 from typing import List, Optional
@@ -134,6 +135,163 @@ class CommandExecutor:
                 device_id=connection.device_id
             )
     
+    def execute_with_privilege(self, 
+                              connection: ConnectionInfo, 
+                              command: str, 
+                              enable_password: str,
+                              timeout: Optional[int] = None) -> CommandResult:
+        """Execute command with privilege escalation (enable mode).
+        
+        Args:
+            connection: Active connection to the device
+            command: Command to execute in privileged mode
+            enable_password: Password for privilege escalation
+            timeout: Command timeout in seconds
+            
+        Returns:
+            CommandResult with execution details
+            
+        Raises:
+            CommandExecutionError: If privilege escalation or command execution fails
+        """
+        if timeout is None:
+            timeout = self.default_timeout
+            
+        self.logger.info(f"Executing privileged command: {command}", 
+                        device_id=connection.device_id, 
+                        command=command)
+        
+        if not hasattr(connection, '_ssh_client') or not connection._ssh_client:
+            raise CommandExecutionError(f"No active SSH connection for device {connection.device_id}",
+                                      {"device_id": connection.device_id})
+        
+        start_time = time.time()
+        
+        try:
+            # Create interactive shell for privilege escalation
+            shell = connection._ssh_client.invoke_shell()
+            shell.settimeout(timeout)
+            
+            # Wait for initial prompt
+            time.sleep(0.5)
+            initial_output = shell.recv(1024).decode('utf-8', errors='replace')
+            
+            # Enter enable mode
+            shell.send('enable\n')
+            time.sleep(0.5)
+            
+            # Check if password prompt appeared
+            prompt_output = shell.recv(1024).decode('utf-8', errors='replace')
+            if 'password' in prompt_output.lower() or ':' in prompt_output:
+                shell.send(f'{enable_password}\n')
+                time.sleep(0.5)
+                
+                # Check for successful privilege escalation
+                enable_result = shell.recv(1024).decode('utf-8', errors='replace')
+                if 'denied' in enable_result.lower() or 'invalid' in enable_result.lower():
+                    raise CommandExecutionError("Privilege escalation failed - invalid enable password",
+                                              {"device_id": connection.device_id})
+            
+            # Execute the actual command
+            shell.send(f'{command}\n')
+            time.sleep(0.5)
+            
+            # Collect output
+            output_parts = []
+            while True:
+                try:
+                    chunk = shell.recv(1024).decode('utf-8', errors='replace')
+                    if not chunk:
+                        break
+                    output_parts.append(chunk)
+                    
+                    # Check for command completion (basic prompt detection)
+                    if '#' in chunk or '>' in chunk:
+                        # Wait a bit more to ensure we got all output
+                        time.sleep(0.2)
+                        try:
+                            final_chunk = shell.recv(1024).decode('utf-8', errors='replace')
+                            if final_chunk:
+                                output_parts.append(final_chunk)
+                        except:
+                            pass
+                        break
+                        
+                except socket.timeout:
+                    break
+            
+            # Exit enable mode
+            shell.send('exit\n')
+            shell.close()
+            
+            # Process output
+            full_output = ''.join(output_parts)
+            
+            # Clean up output (remove command echo and prompts)
+            lines = full_output.split('\n')
+            cleaned_lines = []
+            skip_next = False
+            
+            for line in lines:
+                if skip_next:
+                    skip_next = False
+                    continue
+                    
+                # Skip command echo
+                if command in line:
+                    skip_next = True
+                    continue
+                    
+                # Skip prompts and enable commands
+                if line.strip().endswith('#') or line.strip().endswith('>'):
+                    continue
+                if 'enable' in line and len(line.strip()) < 10:
+                    continue
+                    
+                cleaned_lines.append(line)
+            
+            cleaned_output = '\n'.join(cleaned_lines).strip()
+            execution_time = time.time() - start_time
+            
+            # Update connection activity
+            connection.update_activity()
+            
+            result = CommandResult(
+                success=True,
+                output=cleaned_output,
+                error="",
+                execution_time=execution_time,
+                timestamp=datetime.utcnow(),
+                command=command,
+                device_id=connection.device_id
+            )
+            
+            self.logger.info(f"Privileged command executed successfully",
+                           device_id=connection.device_id,
+                           command=command,
+                           execution_time=execution_time)
+            
+            return result
+            
+        except Exception as e:
+            execution_time = time.time() - start_time
+            
+            self.logger.error(f"Privileged command execution failed: {str(e)}",
+                            device_id=connection.device_id,
+                            command=command,
+                            error=str(e),
+                            execution_time=execution_time)
+            
+            return CommandResult(
+                success=False,
+                output="",
+                error=f"Privileged execution failed: {str(e)}",
+                execution_time=execution_time,
+                timestamp=datetime.utcnow(),
+                command=command,
+                device_id=connection.device_id
+            )
+
     def execute_commands(self, 
                         connection: ConnectionInfo, 
                         commands: List[str],
