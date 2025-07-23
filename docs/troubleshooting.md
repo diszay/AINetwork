@@ -1,19 +1,235 @@
 # NetArchon Troubleshooting Guide
 
-This guide helps you diagnose and resolve common issues when using NetArchon.
+**Having trouble with NetArchon?** Don't worry! This guide will help you solve common problems, whether you're a beginner or an expert.
+
+## 🆘 Quick Help
+
+**For Everyone:**
+- **Can't access the dashboard?** → Check [Dashboard Access Issues](#dashboard-access-issues)
+- **NetArchon won't start?** → Check [Installation Problems](#installation-problems)
+- **Devices showing as offline?** → Check [Device Connection Issues](#device-connection-issues)
+- **Not getting alerts?** → Check [Alert Problems](#alert-problems)
+
+**For Technical Users:**
+- **SSH connection failures?** → Check [Advanced Connection Issues](#advanced-connection-issues)
+- **Configuration deployment failed?** → Check [Configuration Management Issues](#configuration-management-issues)
+- **Performance problems?** → Check [Performance Issues](#performance-issues)
 
 ## Table of Contents
 
-1. [Connection Issues](#connection-issues)
-2. [Authentication Problems](#authentication-problems)
-3. [Command Execution Failures](#command-execution-failures)
-4. [Configuration Management Issues](#configuration-management-issues)
-5. [Monitoring and Alerting Problems](#monitoring-and-alerting-problems)
-6. [Performance Issues](#performance-issues)
-7. [Error Messages](#error-messages)
-8. [Debugging Tips](#debugging-tips)
+1. [Installation Problems](#installation-problems) - Getting NetArchon running
+2. [Dashboard Access Issues](#dashboard-access-issues) - Can't reach the web interface
+3. [Device Connection Issues](#device-connection-issues) - Devices won't connect
+4. [Alert Problems](#alert-problems) - Not receiving notifications
+5. [Advanced Connection Issues](#advanced-connection-issues) - Technical SSH problems
+6. [Configuration Management Issues](#configuration-management-issues) - Config backup/deploy issues
+7. [Performance Issues](#performance-issues) - Slow or unresponsive system
+8. [Error Messages](#error-messages) - Understanding what went wrong
+9. [Getting More Help](#getting-more-help) - When all else fails
 
-## Connection Issues
+## Installation Problems
+
+### Problem: NetArchon won't install
+
+**For Everyone:**
+**Symptoms:** You get error messages when trying to install NetArchon
+
+**Simple Solutions:**
+1. **Make sure Python is installed**
+   - On Windows: Download Python from python.org
+   - On Mac: Install using Homebrew: `brew install python`
+   - On Linux: Use your package manager: `sudo apt install python3`
+
+2. **Try installing with admin privileges**
+   ```bash
+   # On Windows (run Command Prompt as Administrator):
+   pip install netarchon
+   
+   # On Mac/Linux:
+   sudo pip install netarchon
+   ```
+
+3. **Update pip first**
+   ```bash
+   pip install --upgrade pip
+   pip install netarchon
+   ```
+
+**Technical Solutions:**
+- Check Python version: `python --version` (needs 3.8+)
+- Use virtual environment: `python -m venv netarchon-env`
+- Install from source if pip fails: `git clone` and `pip install -e .`
+
+### Problem: Missing dependencies
+
+**For Everyone:**
+**Symptoms:** NetArchon installs but won't start, shows "module not found" errors
+
+**Simple Solutions:**
+1. **Install missing packages**
+   ```bash
+   pip install streamlit plotly pandas
+   ```
+
+2. **Reinstall NetArchon completely**
+   ```bash
+   pip uninstall netarchon
+   pip install netarchon
+   ```
+
+**Technical Solutions:**
+- Check requirements.txt and install all dependencies
+- Use `pip check` to verify package compatibility
+- Create fresh virtual environment if conflicts exist
+
+## Dashboard Access Issues
+
+### Problem: Can't open the web dashboard
+
+**For Everyone:**
+**Symptoms:** Browser shows "This site can't be reached" or similar error
+
+**Simple Solutions:**
+1. **Make sure NetArchon is running**
+   ```bash
+   # Start NetArchon (this should stay running)
+   streamlit run netarchon
+   ```
+
+2. **Try the correct web address**
+   - Open your browser
+   - Go to: `http://localhost:8501`
+   - If that doesn't work, try: `http://127.0.0.1:8501`
+
+3. **Check if another program is using the port**
+   - Try a different port: `streamlit run netarchon --server.port 8502`
+   - Then go to: `http://localhost:8502`
+
+**Technical Solutions:**
+- Check firewall settings (allow port 8501)
+- Verify Streamlit is installed: `streamlit --version`
+- Check for port conflicts: `netstat -an | grep 8501`
+- Review Streamlit logs for specific errors
+
+### Problem: Dashboard loads but shows errors
+
+**For Everyone:**
+**Symptoms:** You can see the NetArchon page but it shows error messages or blank sections
+
+**Simple Solutions:**
+1. **Refresh the page** - Sometimes a simple refresh fixes temporary issues
+2. **Clear your browser cache** - Old cached files can cause problems
+3. **Try a different browser** - Chrome, Firefox, Safari, or Edge
+
+**Technical Solutions:**
+- Check browser console for JavaScript errors (F12 → Console)
+- Verify all NetArchon services are running
+- Check log files for specific error messages
+- Restart Streamlit application
+
+## Device Connection Issues
+
+### Problem: Devices show as "offline" or "unreachable"
+
+**For Everyone:**
+**Symptoms:** Your router, modem, or other devices appear red or offline in NetArchon
+
+**Simple Solutions:**
+1. **Check if the device is actually on**
+   - Look for power lights on your router/modem
+   - Try accessing the device's web interface (usually http://192.168.1.1)
+
+2. **Verify the IP address**
+   - Make sure you're using the right IP address for your device
+   - Common addresses: 192.168.1.1, 192.168.0.1, 10.0.0.1
+
+3. **Check your network connection**
+   - Make sure your computer is connected to the same network
+   - Try pinging the device: `ping 192.168.1.1`
+
+**Technical Solutions:**
+- Verify SSH is enabled on the target device
+- Check authentication credentials in NetArchon
+- Review firewall rules on both client and device
+- Test manual SSH connection: `ssh admin@192.168.1.1`
+
+### Problem: Authentication failures
+
+**For Everyone:**
+**Symptoms:** NetArchon says "login failed" or "wrong password"
+
+**Simple Solutions:**
+1. **Double-check your passwords**
+   - Make sure you're using the admin password for your device
+   - Check for typos or caps lock
+
+2. **Try the default passwords**
+   - Many devices use "admin/admin" or "admin/password"
+   - Check the sticker on your device for default credentials
+
+3. **Reset device if necessary**
+   - If you've forgotten the password, you may need to factory reset
+   - Look for a reset button on your device
+
+**Technical Solutions:**
+- Verify account is not locked due to failed attempts
+- Check if password authentication is enabled on device
+- Try key-based authentication instead of passwords
+- Review device logs for authentication attempts
+
+## Alert Problems
+
+### Problem: Not receiving alerts when problems occur
+
+**For Everyone:**
+**Symptoms:** Your internet goes down or device fails, but NetArchon doesn't notify you
+
+**Simple Solutions:**
+1. **Check alert settings**
+   - Open NetArchon dashboard
+   - Look for "Alerts" or "Notifications" settings
+   - Make sure alerts are enabled
+
+2. **Verify your email address**
+   - Check that your email is entered correctly
+   - Look in your spam/junk folder for NetArchon emails
+
+3. **Test the alert system**
+   - Look for a "Test Alert" button in settings
+   - This will send a test notification to verify it's working
+
+**Technical Solutions:**
+- Verify SMTP settings for email notifications
+- Check alert thresholds and rules configuration
+- Review notification channel settings (email, webhook, etc.)
+- Test individual notification methods programmatically
+
+### Problem: Too many alerts or false alarms
+
+**For Everyone:**
+**Symptoms:** NetArchon sends too many notifications or alerts for things that aren't really problems
+
+**Simple Solutions:**
+1. **Adjust alert sensitivity**
+   - Look for "Alert Thresholds" in settings
+   - Increase the values to make alerts less sensitive
+   - For example, change CPU alert from 70% to 85%
+
+2. **Set up alert cooldowns**
+   - Configure alerts to wait before sending duplicate notifications
+   - This prevents spam from the same issue
+
+3. **Disable unnecessary alerts**
+   - Turn off alerts for metrics you don't care about
+   - Focus on critical issues like internet outages
+
+**Technical Solutions:**
+- Fine-tune threshold values based on baseline metrics
+- Implement alert correlation to reduce noise
+- Configure alert cooldown periods and escalation rules
+- Use statistical baselines for dynamic thresholds
+
+## Advanced Connection Issues
 
 ### Problem: Cannot connect to device
 

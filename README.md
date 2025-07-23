@@ -1,35 +1,59 @@
-# NetArchon - The Omniscient AI Network Engineer
+# NetArchon - Your Personal AI Network Assistant
 
-A revolutionary AI-powered network management system that combines comprehensive network automation with intelligent BitWarden credential management, RustDesk remote desktop monitoring, and Kiro AI multi-device coordination.
+**Think of NetArchon as having a professional network engineer living in your home, watching over your internet connection 24/7.**
 
-## 🚀 Vision
+NetArchon is an intelligent system that automatically monitors and manages your home network - from your internet modem to your WiFi router to all your connected devices. It's like having a tech-savvy friend who can instantly tell you why your internet is slow, when a device goes offline, or if there are any security concerns.
 
-NetArchon embodies the complete skill set of a senior network engineer as an autonomous AI agent, designed for **Monitoring-as-a-Service (MaaS)** with a focus on home network intelligence and security.
+## 🏠 What NetArchon Does for Your Home
 
-## ✨ Key Features
+**For Everyone:**
+- **Monitors Your Internet**: Keeps track of your internet speed, data usage, and connection quality
+- **Watches Your Devices**: Knows when your smart TV, laptop, or phone connects or disconnects
+- **Prevents Problems**: Alerts you before issues become serious (like when you're approaching your data limit)
+- **Keeps You Secure**: Watches for suspicious activity and unauthorized devices on your network
 
-### 🔐 **Secure Credential Management**
-- **BitWarden Integration**: Automatic credential retrieval and encrypted storage
-- **Device Mapping**: Smart credential-to-device association
-- **Secure Authentication**: AES-256 encryption with PBKDF2 password hashing
+**For Tech Enthusiasts:**
+- **Advanced Monitoring**: Real-time metrics collection with statistical analysis and trend forecasting
+- **Automated Management**: Intelligent configuration backup, deployment, and rollback capabilities
+- **Security Intelligence**: Comprehensive threat detection with RFC 1918 compliance monitoring
+- **Integration Platform**: BitWarden credential management and RustDesk remote desktop coordination
 
-### 🖥️ **Remote Desktop Monitoring** 
-- **RustDesk Integration**: Complete remote desktop infrastructure management
-- **Session Tracking**: Real-time connection monitoring and analytics
-- **Multi-Platform Deployment**: Automated client deployment (Windows, macOS, Linux)
-- **Security Analysis**: Advanced threat detection and audit logging
+## ✨ What Makes NetArchon Special
 
-### 🤖 **AI-Powered Automation**
-- **Kiro AI Integration**: Multi-device coordination and task automation
-- **Natural Language Interface**: Complex task execution through AI commands
-- **Predictive Maintenance**: Intelligent problem detection and resolution
+### 🔐 **Password Management Made Easy**
+**What it means for you:** NetArchon works with BitWarden (a password manager) to automatically log into your network devices so you don't have to remember all those admin passwords.
 
-### 🌐 **Comprehensive Network Management**
-- **Multi-vendor Support**: Cisco IOS/NX-OS, Juniper JunOS, Arista EOS
-- **SSH Connection Management**: Robust pooling with automatic authentication
-- **Configuration Management**: Backup, deploy, validate, and rollback with safety
-- **Real-time Monitoring**: Advanced metrics collection and alerting
-- **Home Network Focus**: Secure, local-only operations with RFC 1918 validation
+**Technical details:** 
+- Automatic credential retrieval from BitWarden vault with AES-256 encryption
+- Smart device-to-credential mapping with secure authentication protocols
+- PBKDF2 password hashing with 100,000 iterations for maximum security
+
+### 🖥️ **Remote Access Monitoring**
+**What it means for you:** If you use remote desktop software to access your computers from anywhere, NetArchon keeps track of all those connections and makes sure they're secure.
+
+**Technical details:**
+- Complete RustDesk infrastructure management with session analytics
+- Real-time connection monitoring with security event correlation
+- Multi-platform deployment automation (Windows, macOS, Linux)
+- Advanced threat detection with comprehensive audit logging
+
+### 🤖 **Smart Automation**
+**What it means for you:** NetArchon can automatically fix common problems and perform routine maintenance tasks without you having to do anything.
+
+**Technical details:**
+- Kiro AI integration for multi-device coordination and task automation
+- Natural language interface for complex network operations
+- Predictive maintenance with intelligent problem detection and resolution
+
+### 🌐 **Complete Network Management**
+**What it means for you:** Whether you have a simple home setup or complex business equipment, NetArchon can manage all types of network devices.
+
+**Technical details:**
+- Multi-vendor support: Cisco IOS/NX-OS, Juniper JunOS, Arista EOS, and generic devices
+- Robust SSH connection pooling with automatic authentication and retry logic
+- Configuration management: backup, deploy, validate, and rollback with safety mechanisms
+- Real-time metrics collection with statistical analysis and alerting
+- Home network focus: secure, local-only operations with RFC 1918 validation
 
 ## 🏗️ Architecture: The Five Pillars
 
@@ -65,21 +89,64 @@ NetArchon embodies the complete skill set of a senior network engineer as an aut
 
 ## 🚀 Quick Start
 
-### Home Network Setup
+### For Everyone: Get NetArchon Running in 5 Minutes
 
+**Step 1: Download NetArchon**
 ```bash
-# Clone NetArchon
-git clone https://github.com/diszay/AINetwork.git
-cd AINetwork/AINetwork-2
+# If you have Python installed (most computers do):
+pip install netarchon
 
-# Install dependencies
+# Or download from GitHub:
+git clone https://github.com/diszay/AINetwork.git
+cd AINetwork
+```
+
+**Step 2: Start Your Network Dashboard**
+```bash
+# This starts your personal network control center:
+streamlit run netarchon
+
+# You should see: "You can now view your Streamlit app in your browser"
+# Local URL: http://localhost:8501
+```
+
+**Step 3: Open Your Dashboard**
+- Open any web browser (Chrome, Firefox, Safari, Edge)
+- Go to: `http://localhost:8501`
+- You'll see your NetArchon dashboard!
+
+**Step 4: Add Your First Device**
+- Click "Add Device" in the dashboard
+- Enter your router's IP address (usually `192.168.1.1`)
+- Enter the admin username and password
+- Click "Connect" - NetArchon will start monitoring!
+
+### For Technical Users: Advanced Setup
+
+**Install with All Dependencies:**
+```bash
+# Clone the full repository:
+git clone https://github.com/diszay/AINetwork.git
+cd AINetwork
+
+# Install all requirements:
 pip install -r requirements-web.txt
 
-# Configure BitWarden integration
+# Configure BitWarden integration (optional):
 export BITWARDEN_MASTER_PASSWORD="your_master_password"
 
-# Start the web interface
-streamlit run src/netarchon/web/streamlit_app.py
+# Start with custom configuration:
+streamlit run src/netarchon/web/streamlit_app.py --server.port 8501
+```
+
+**Linux Server Deployment:**
+```bash
+# For deployment on Ubuntu/Linux Mint:
+sudo systemctl enable netarchon
+sudo systemctl start netarchon
+
+# Access from any device on your network:
+http://your-server-ip:8501
 ```
 
 ### Basic Usage with BitWarden Integration
@@ -215,26 +282,55 @@ netarchon.execute_security_scan(
 
 ## 📚 Documentation
 
-- **[Development Activity Log](docs/activity.md)**: Complete development history
-- **[Task Planning](tasks/todo.md)**: Current implementation status and roadmap
-- **[Security Implementation](docs/security_implementation.md)**: Comprehensive security documentation
-- **[Deployment Guide](deployment/ubuntu-server-setup.md)**: Mini PC server setup
-- **[Architecture Guide](CLAUDE.md)**: Complete system design and workflow
+**Complete guides for everyone - from beginners to experts:**
+
+### 🚀 Getting Started
+- **[Installation Guide](docs/installation.md)** - Complete installation instructions for all platforms
+- **[Quick Start Guide](docs/quickstart.md)** - Get running in 10 minutes
+- **[Ubuntu 24.04.2 LTS Deployment](docs/ubuntu-deployment.md)** - Complete Ubuntu server setup
+- **[Ubuntu Server CLI Deployment](docs/ubuntu-server-deployment.md)** - Complete CLI-based deployment
+- **[CLI Usage Guide](docs/cli-usage.md)** - Complete command-line management
+- **[How to Use NetArchon](docs/how-to-use-netarchon.md)** - Complete usage guide
+- **[User Guide](docs/user_guide.md)** - Complete guide to using NetArchon
+- **[Troubleshooting Guide](docs/troubleshooting.md)** - Fix common problems
+- **[FAQ](docs/faq.md)** - Frequently asked questions and answers
+
+### 🔧 Technical Documentation
+- **[API Documentation](docs/api_documentation.md)** - Programmatic access and integration
+- **[Web Architecture](docs/web_architecture.md)** - How the dashboard works
+- **[Security Implementation](docs/security_implementation.md)** - Security features and protection
+
+### 🛠️ Development & Contributing
+- **[Contributing Guide](docs/contributing.md)** - How to help improve NetArchon
+- **[Development Activity Log](docs/activity.md)** - Complete development history
+- **[Web Development Plan](docs/web_development_plan.md)** - Roadmap for web interface
+
+**📖 [Complete Documentation Index](docs/README.md)** - Find the right guide for you
 
 ## 🚀 Deployment
 
-### Mini PC Server (Recommended)
+### Ubuntu 24.04.2 LTS Server (Recommended for Your Setup)
 
+**One-Command Installation:**
 ```bash
-# Ubuntu Server 24.04 LTS setup
-wget -O - https://raw.githubusercontent.com/diszay/AINetwork/main/deployment/ubuntu-server-setup.md | bash
+# Automated installation for Ubuntu 24.04.2 LTS Server
+curl -fsSL https://raw.githubusercontent.com/diszay/AINetwork/main/scripts/ubuntu-24.04-install.sh | bash
+```
 
-# Start NetArchon as system service
-sudo systemctl enable netarchon-streamlit
-sudo systemctl start netarchon-streamlit
+**What gets installed:**
+- NetArchon with all dependencies
+- systemd service for automatic startup
+- UFW firewall and fail2ban security
+- Automated backups and health monitoring
+- Python 3.12 virtual environment
 
-# Access web interface
-open http://192.168.1.100:8501
+**Access your dashboard:**
+```bash
+# From your server
+http://localhost:8501
+
+# From other devices on your network
+http://your-server-ip:8501
 ```
 
 ## 🤝 Contributing

@@ -1,0 +1,166 @@
+# NetArchon Configuration File
+
+# Network Configuration
+network:
+  # Home network range (CIDR notation)
+  home_network_range: "192.168.1.0/24"
+  
+  # Device IP addresses
+  mini_pc_server: "192.168.1.100"
+  xfinity_gateway: "192.168.1.1"
+  arris_modem: "192.168.100.1"
+  netgear_router: "192.168.1.10"
+  netgear_satellites:
+    - "192.168.1.2"
+    - "192.168.1.3"
+
+# Storage Configuration
+storage:
+  # Database path (relative to data directory)
+  database_path: "metrics.db"
+  
+  # Maximum database size in MB
+  max_database_size_mb: 1024
+  
+  # Encryption and compression settings
+  enable_encryption: true
+  enable_compression: true
+  
+  # Backup settings
+  backup_interval_hours: 6
+  backup_retention_days: 7
+
+# Metrics Collection Configuration
+collection:
+  # Default collection interval in seconds
+  default_interval: 60
+  
+  # Maximum concurrent collections
+  max_concurrent: 10
+  
+  # Device-specific intervals
+  device_intervals:
+    mini_pc_server: 30
+    arris_modem: 60
+    xfinity_gateway: 120
+    netgear_router: 90
+    netgear_satellite: 120
+
+# Alert Configuration
+alerts:
+  # Email notification settings
+  email:
+    enabled: false
+    smtp_server: "smtp.gmail.com"
+    smtp_port: 587
+    smtp_username: "your-email@gmail.com"
+    smtp_password: "your-app-password"
+    email_from: "your-email@gmail.com"
+    email_to:
+      - "your-email@gmail.com"
+  
+  # Webhook notification settings
+  webhook:
+    enabled: false
+    url: "https://hooks.slack.com/services/YOUR/SLACK/WEBHOOK"
+  
+  # Slack notification settings
+  slack:
+    enabled: false
+    webhook_url: "https://hooks.slack.com/services/YOUR/SLACK/WEBHOOK"
+    channel: "#network-alerts"
+    username: "NetArchon"
+  
+  # Alert thresholds
+  thresholds:
+    cpu_usage_warning: 80.0
+    cpu_usage_critical: 90.0
+    memory_usage_warning: 85.0
+    memory_usage_critical: 95.0
+    disk_usage_warning: 80.0
+    disk_usage_critical: 90.0
+    latency_warning: 100.0
+    latency_critical: 500.0
+
+# Web Interface Configuration
+web:
+  # Port for Streamlit interface
+  port: 8501
+  
+  # Authentication settings
+  enable_authentication: true
+  session_expiry_hours: 24
+  
+  # Dashboard settings
+  auto_refresh_interval: 30
+  max_chart_points: 1000
+  
+  # Theme settings
+  theme: "dark"
+  primary_color: "#1f77b4"
+
+# RustDesk Configuration
+rustdesk:
+  # Server settings
+  server_port: 21118
+  relay_port: 21117
+  
+  # Security settings
+  enable_encryption: true
+  require_password: true
+  
+  # Session settings
+  max_sessions: 10
+  session_timeout_minutes: 30
+
+# Security Configuration
+security:
+  # Encryption settings
+  encryption_key_path: ".encryption_key"
+  
+  # Access control
+  allowed_networks:
+    - "192.168.1.0/24"
+    - "10.0.0.0/8"
+    - "172.16.0.0/12"
+  
+  # Audit logging
+  enable_audit_log: true
+  audit_log_path: "audit.log"
+  
+  # Security monitoring
+  enable_intrusion_detection: true
+  max_failed_attempts: 5
+  lockout_duration_minutes: 15
+
+# Logging Configuration
+logging:
+  # Log level (DEBUG, INFO, WARNING, ERROR, CRITICAL)
+  level: "INFO"
+  
+  # Log file settings
+  log_file: "netarchon.log"
+  max_log_size_mb: 100
+  backup_count: 5
+  
+  # Component-specific logging
+  components:
+    collector: "INFO"
+    alerts: "INFO"
+    web: "INFO"
+    rustdesk: "INFO"
+
+# Performance Configuration
+performance:
+  # Resource limits
+  max_memory_usage_mb: 2048
+  max_cpu_usage_percent: 80
+  
+  # Cache settings
+  enable_caching: true
+  cache_size_mb: 256
+  cache_ttl_seconds: 300
+  
+  # Database optimization
+  database_pool_size: 10
+  query_timeout_seconds: 30

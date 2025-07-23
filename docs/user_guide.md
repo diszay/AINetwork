@@ -1,101 +1,158 @@
 # NetArchon User Guide
 
-This guide provides comprehensive information on how to use NetArchon for network device automation, configuration management, and monitoring.
+**Welcome to NetArchon!** This guide will help you understand and use your personal AI network assistant, whether you're a complete beginner or a networking expert.
+
+## 🎯 What You'll Learn
+
+**For Everyone:**
+- How to install NetArchon on your computer
+- How to access the web dashboard
+- How to monitor your internet and devices
+- How to understand alerts and notifications
+
+**For Technical Users:**
+- How to configure advanced monitoring
+- How to manage device credentials securely
+- How to automate network tasks
+- How to troubleshoot network issues
 
 ## Table of Contents
 
-1. [Installation](#installation)
-2. [Basic Concepts](#basic-concepts)
-3. [Device Connection](#device-connection)
-4. [Command Execution](#command-execution)
-5. [Configuration Management](#configuration-management)
-6. [Monitoring and Alerting](#monitoring-and-alerting)
-7. [Error Handling](#error-handling)
-8. [Advanced Features](#advanced-features)
+1. [Getting Started](#getting-started) - Installation and first steps
+2. [Understanding Your Network](#understanding-your-network) - Basic concepts explained simply
+3. [Using the Web Dashboard](#using-the-web-dashboard) - Point-and-click interface
+4. [Managing Your Devices](#managing-your-devices) - Adding and monitoring devices
+5. [Monitoring and Alerts](#monitoring-and-alerts) - Staying informed about your network
+6. [Security Features](#security-features) - Keeping your network safe
+7. [Advanced Features](#advanced-features) - For power users
+8. [Troubleshooting](#troubleshooting) - When things go wrong
 
-## Installation
+## Getting Started
 
-### Requirements
+### What You Need Before Installing
 
+**For Everyone:**
+- A computer running Windows, Mac, or Linux
+- Your home WiFi network (NetArchon works best when installed on a computer that stays connected to your network)
+- Admin passwords for your router/modem (if you want advanced features)
+
+**Technical Requirements:**
 - Python 3.8 or higher
-- SSH access to network devices
-- Network connectivity to target devices
+- Network connectivity to your home devices
+- SSH access to network devices (for advanced monitoring)
 
-### Install from PyPI
+### Easy Installation (Recommended)
 
+**Step 1: Download NetArchon**
 ```bash
+# If you have Python installed, this is the easiest way:
 pip install netarchon
 ```
 
-### Install from Source
-
+**Step 2: Start NetArchon**
 ```bash
+# Run this command to start your network dashboard:
+streamlit run netarchon
+```
+
+**Step 3: Open Your Dashboard**
+- Open your web browser
+- Go to: `http://localhost:8501`
+- You should see your NetArchon dashboard!
+
+### Advanced Installation (For Developers)
+
+**Install from Source Code:**
+```bash
+# Download the latest version from GitHub:
 git clone https://github.com/yourusername/netarchon.git
 cd netarchon
 pip install -e .
 ```
 
-### Development Installation
-
+**Development Setup:**
 ```bash
+# Set up a development environment:
 python scripts/setup_dev_env.py
-source .venv/bin/activate
+source .venv/bin/activate  # On Mac/Linux
+# or
+.venv\Scripts\activate     # On Windows
 ```
 
-## Basic Concepts
+## Understanding Your Network
 
-### Device Model
+### What is a "Network Device"?
 
-NetArchon uses a `Device` object to represent network devices:
+**For Everyone:**
+Think of network devices as the "traffic controllers" of your internet. These include:
+- **Your Router** - The box that creates your WiFi network (like Netgear, Linksys, etc.)
+- **Your Modem** - The device that connects to your internet provider (like Arris, Motorola)
+- **Switches** - Devices that connect multiple wired devices together
+- **Access Points** - Devices that extend your WiFi coverage
+
+**Technical Details:**
+NetArchon represents each network device as a `Device` object with specific properties:
 
 ```python
 from netarchon.models.device import Device, DeviceType
 from netarchon.models.connection import ConnectionParameters
 
 device = Device(
-    name="router1",
-    hostname="192.168.1.1",
-    device_type=DeviceType.CISCO_IOS,
+    name="router1",                    # Friendly name you choose
+    hostname="192.168.1.1",           # IP address of the device
+    device_type=DeviceType.CISCO_IOS, # What type of device it is
     connection_params=ConnectionParameters(
-        username="admin",
-        password="password",
-        port=22
+        username="admin",              # Login username
+        password="password",           # Login password
+        port=22                        # Connection port (usually 22 for SSH)
     )
 )
 ```
 
-### Supported Device Types
+### Types of Devices NetArchon Supports
 
-- `DeviceType.CISCO_IOS` - Cisco IOS devices
-- `DeviceType.CISCO_NXOS` - Cisco Nexus devices
-- `DeviceType.JUNIPER_JUNOS` - Juniper JunOS devices
-- `DeviceType.ARISTA_EOS` - Arista EOS devices
-- `DeviceType.GENERIC` - Generic SSH devices
+**For Everyone:**
+NetArchon works with most common home and business network equipment, including:
+- Popular home routers (Netgear, Linksys, ASUS, etc.)
+- Cable/DSL modems (Arris, Motorola, etc.)
+- Business-grade equipment (Cisco, Juniper, etc.)
+- Generic devices that support remote management
 
-### Connection Parameters
+**Technical Device Types:**
+- `DeviceType.CISCO_IOS` - Cisco routers and switches
+- `DeviceType.CISCO_NXOS` - Cisco Nexus data center switches
+- `DeviceType.JUNIPER_JUNOS` - Juniper Networks equipment
+- `DeviceType.ARISTA_EOS` - Arista Networks switches
+- `DeviceType.GENERIC` - Any device that supports SSH connections
 
+### How NetArchon Connects to Your Devices
+
+**For Everyone:**
+NetArchon needs to "log in" to your network devices to monitor them, just like you would log into a website. It uses the admin username and password for each device.
+
+**Technical Connection Details:**
 ```python
 from netarchon.models.connection import ConnectionParameters
 
-# Basic authentication
+# Basic username/password authentication
 conn_params = ConnectionParameters(
     username="admin",
     password="password"
 )
 
-# Key-based authentication
+# More secure key-based authentication
 conn_params = ConnectionParameters(
     username="admin",
     private_key_path="/path/to/private/key"
 )
 
-# Advanced options
+# Advanced connection settings
 conn_params = ConnectionParameters(
     username="admin",
     password="password",
-    port=2222,
-    timeout=30,
-    keepalive_interval=60
+    port=2222,              # Custom port if not using standard port 22
+    timeout=30,             # How long to wait for connection
+    keepalive_interval=60   # Keep connection alive every 60 seconds
 )
 ```
 

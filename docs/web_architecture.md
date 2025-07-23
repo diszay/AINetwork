@@ -1,7 +1,18 @@
-# NetArchon Streamlit Web Interface Architecture
+# NetArchon Web Interface: Your Network Dashboard
 
-## Overview
-The NetArchon web interface provides real-time visualization and management capabilities for network operations. Built as a Streamlit application with direct integration to NetArchon core modules and interactive dashboard components.
+## What is the NetArchon Web Interface?
+
+**For Everyone:**
+The NetArchon web interface is like a "control panel" for your home network that you can access from any web browser. Think of it like the dashboard in your car - it shows you important information at a glance and lets you control various features.
+
+When you open NetArchon in your browser, you'll see:
+- A real-time view of all your network devices
+- Charts showing your internet speed and usage
+- Alerts when something needs attention
+- Easy-to-use controls for managing your network
+
+**For Technical Users:**
+The NetArchon web interface provides comprehensive real-time visualization and management capabilities for network operations. Built as a Streamlit application with direct integration to NetArchon core modules, it offers interactive dashboard components, device management interfaces, and advanced monitoring capabilities.
 
 ## Architecture Components
 

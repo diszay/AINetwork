@@ -69,7 +69,18 @@ class RustDeskMonitor:
             'websocket_ssl': 21119 # websocket SSL
         }
         
-        # Security monitoring patterns
+        # Home network integration settings
+        self.home_network_config = {
+            'network_range': '192.168.1.0/24',
+            'mini_pc_server': '192.168.1.100',
+            'xfinity_gateway': '192.168.1.1',
+            'arris_modem': '192.168.100.1',
+            'netgear_router': '192.168.1.10',
+            'netgear_satellites': ['192.168.1.2', '192.168.1.3'],
+            'kiro_ide_enabled': True
+        }
+        
+        # Security monitoring patterns (enhanced for home network)
         self.security_patterns = {
             'failed_auth': [
                 r'authentication failed',
@@ -85,6 +96,16 @@ class RustDeskMonitor:
                 r'multiple failed attempts',
                 r'unusual connection pattern',
                 r'potential brute force'
+            ],
+            'home_network_breach': [
+                r'connection from outside home network',
+                r'non-RFC1918 source',
+                r'external access attempt'
+            ],
+            'kiro_ide_activity': [
+                r'kiro ide session',
+                r'code enhancement request',
+                r'autonomous development'
             ]
         }
         
@@ -686,6 +707,396 @@ class RustDeskMonitor:
                 
             except Exception as e:
                 results[service_name] = {
+                    'port': port,
+                    'status': 'error',
+                    'accessible': False,
+                    'error': str(e)
+                }
+        
+        return results
+    
+    def validate_home_network_access(self, ip_address: str) -> bool:
+        """Validate that access is from home network (RFC 1918)."""
+        import ipaddress
+        
+        try:
+            ip = ipaddress.IPv4Address(ip_address)
+            
+            # Check if IP is in RFC 1918 private ranges
+            private_ranges = [
+                ipaddress.IPv4Network('192.168.0.0/16'),
+                ipaddress.IPv4Network('10.0.0.0/8'),
+                ipaddress.IPv4Network('172.16.0.0/12')
+            ]
+            
+            for network in private_ranges:
+                if ip in network:
+                    return True
+            
+            return False
+            
+        except ipaddress.AddressValueError:
+            return False
+    
+    def detect_kiro_ide_sessions(self) -> List[Dict[str, Any]]:
+        """Detect active Kiro IDE sessions for network engineering enhancement."""
+        kiro_sessions = []
+        
+        try:
+            # Look for Kiro IDE specific patterns in connections
+            active_connections = self.get_active_connections()
+            
+            for connection in active_connections:
+                # Check if connection involves Kiro IDE
+                if self._is_kiro_ide_session(connection):
+                    session_info = {
+                        'connection_id': connection.connection_id,
+                        'device_id': connection.from_device_id,
+                        'device_name': connection.from_device_name,
+                        'target_device': connection.to_device_name,
+                        'session_type': 'kiro_ide_enhancement',
+                        'start_time': connection.start_time,
+                        'remote_ip': connection.remote_ip,
+                        'home_network_validated': self.validate_home_network_access(connection.remote_ip) if connection.remote_ip else False,
+                        'enhancement_capabilities': self._get_kiro_enhancement_capabilities(connection)
+                    }
+                    kiro_sessions.append(session_info)
+            
+            return kiro_sessions
+            
+        except Exception as e:
+            self.logger.error(f"Failed to detect Kiro IDE sessions: {e}")
+            return []
+    
+    def _is_kiro_ide_session(self, connection: RustDeskConnection) -> bool:
+        """Check if connection is a Kiro IDE session."""
+        # Check device names for Kiro IDE indicators
+        kiro_indicators = ['kiro', 'ide', 'netarchon', 'development', 'coding']
+        
+        device_names = [
+            connection.from_device_name.lower() if connection.from_device_name else '',
+            connection.to_device_name.lower() if connection.to_device_name else ''
+        ]
+        
+        for name in device_names:
+            if any(indicator in name for indicator in kiro_indicators):
+                return True
+        
+        return False
+    
+    def _get_kiro_enhancement_capabilities(self, connection: RustDeskConnection) -> Dict[str, Any]:
+        """Get Kiro IDE enhancement capabilities for the session."""
+        capabilities = {
+            'code_analysis': True,
+            'network_automation': True,
+            'device_configuration': True,
+            'monitoring_enhancement': True,
+            'security_analysis': True,
+            'autonomous_development': self.home_network_config.get('kiro_ide_enabled', False)
+        }
+        
+        # Add device-specific capabilities based on target
+        if connection.to_device_name:
+            target_name = connection.to_device_name.lower()
+            
+            if 'ubuntu' in target_name or 'linux' in target_name:
+                capabilities['linux_optimization'] = True
+                capabilities['docker_management'] = True
+                capabilities['systemd_services'] = True
+            
+            if 'mini-pc' in target_name or connection.remote_ip == self.home_network_config['mini_pc_server']:
+                capabilities['server_management'] = True
+                capabilities['rustdesk_server_control'] = True
+                capabilities['home_network_integration'] = True
+        
+        return capabilities
+    
+    def get_home_network_device_status(self) -> Dict[str, Any]:
+        """Get status of known home network devices."""
+        device_status = {}
+        
+        # Test connectivity to known home network devices
+        home_devices = {
+            'xfinity_gateway': self.home_network_config['xfinity_gateway'],
+            'arris_modem': self.home_network_config['arris_modem'],
+            'netgear_router': self.home_network_config['netgear_router'],
+            'mini_pc_server': self.home_network_config['mini_pc_server']
+        }
+        
+        # Add satellites
+        for i, satellite_ip in enumerate(self.home_network_config['netgear_satellites']):
+            home_devices[f'netgear_satellite_{i+1}'] = satellite_ip
+        
+        for device_name, ip_address in home_devices.items():
+            try:
+                # Test basic connectivity
+                import subprocess
+                result = subprocess.run(
+                    ['ping', '-c', '1', '-W', '3', ip_address],
+                    capture_output=True,
+                    timeout=5
+                )
+                
+                is_reachable = result.returncode == 0
+                
+                # Test common ports if reachable
+                open_ports = []
+                if is_reachable:
+                    common_ports = [22, 80, 443, 8080]
+                    if device_name == 'mini_pc_server':
+                        common_ports.extend([21116, 21117])  # RustDesk ports
+                    
+                    for port in common_ports:
+                        try:
+                            sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+                            sock.settimeout(1)
+                            if sock.connect_ex((ip_address, port)) == 0:
+                                open_ports.append(port)
+                            sock.close()
+                        except:
+                            pass
+                
+                device_status[device_name] = {
+                    'ip_address': ip_address,
+                    'reachable': is_reachable,
+                    'open_ports': open_ports,
+                    'last_checked': datetime.now().isoformat(),
+                    'kiro_ide_accessible': 22 in open_ports or 8080 in open_ports  # SSH or web access
+                }
+                
+            except Exception as e:
+                device_status[device_name] = {
+                    'ip_address': ip_address,
+                    'reachable': False,
+                    'error': str(e),
+                    'last_checked': datetime.now().isoformat(),
+                    'kiro_ide_accessible': False
+                }
+        
+        return device_status
+    
+    def generate_network_enhancement_report(self) -> Dict[str, Any]:
+        """Generate comprehensive report for network engineering enhancement."""
+        try:
+            report = {
+                'timestamp': datetime.now().isoformat(),
+                'home_network_status': self.get_home_network_device_status(),
+                'kiro_ide_sessions': self.detect_kiro_ide_sessions(),
+                'rustdesk_server_health': self.get_server_status().__dict__,
+                'security_analysis': {
+                    'recent_events': [event.__dict__ for event in self.scan_security_events(24)],
+                    'external_connections': self._detect_external_connections(),
+                    'rfc1918_compliance': self._check_rfc1918_compliance()
+                },
+                'enhancement_opportunities': self._identify_enhancement_opportunities(),
+                'recommendations': self._generate_enhancement_recommendations()
+            }
+            
+            return report
+            
+        except Exception as e:
+            self.logger.error(f"Failed to generate enhancement report: {e}")
+            raise RustDeskMonitoringError("enhancement_report", str(e))
+    
+    def _detect_external_connections(self) -> List[Dict[str, Any]]:
+        """Detect connections from outside home network."""
+        external_connections = []
+        
+        try:
+            active_connections = self.get_active_connections()
+            
+            for connection in active_connections:
+                if connection.remote_ip and not self.validate_home_network_access(connection.remote_ip):
+                    external_connections.append({
+                        'connection_id': connection.connection_id,
+                        'remote_ip': connection.remote_ip,
+                        'device_id': connection.from_device_id,
+                        'start_time': connection.start_time.isoformat(),
+                        'threat_level': 'high',
+                        'blocked': False  # Would be true if firewall blocked it
+                    })
+        
+        except Exception as e:
+            self.logger.error(f"Failed to detect external connections: {e}")
+        
+        return external_connections
+    
+    def _check_rfc1918_compliance(self) -> Dict[str, Any]:
+        """Check RFC 1918 compliance for all connections."""
+        compliance_status = {
+            'compliant': True,
+            'total_connections': 0,
+            'compliant_connections': 0,
+            'violations': []
+        }
+        
+        try:
+            active_connections = self.get_active_connections()
+            compliance_status['total_connections'] = len(active_connections)
+            
+            for connection in active_connections:
+                if connection.remote_ip:
+                    if self.validate_home_network_access(connection.remote_ip):
+                        compliance_status['compliant_connections'] += 1
+                    else:
+                        compliance_status['compliant'] = False
+                        compliance_status['violations'].append({
+                            'connection_id': connection.connection_id,
+                            'remote_ip': connection.remote_ip,
+                            'device_id': connection.from_device_id
+                        })
+        
+        except Exception as e:
+            self.logger.error(f"Failed to check RFC 1918 compliance: {e}")
+        
+        return compliance_status
+    
+    def _identify_enhancement_opportunities(self) -> List[Dict[str, Any]]:
+        """Identify opportunities for Kiro IDE network enhancement."""
+        opportunities = []
+        
+        try:
+            # Check for devices that could benefit from Kiro IDE
+            home_devices = self.get_home_network_device_status()
+            
+            for device_name, status in home_devices.items():
+                if status.get('reachable') and not status.get('kiro_ide_accessible'):
+                    opportunities.append({
+                        'type': 'kiro_ide_deployment',
+                        'target': device_name,
+                        'description': f'Deploy Kiro IDE to {device_name} for enhanced network management',
+                        'priority': 'medium',
+                        'requirements': ['SSH access', 'Docker support'],
+                        'benefits': ['Remote code enhancement', 'Automated network tasks', 'Real-time monitoring']
+                    })
+            
+            # Check for monitoring gaps
+            server_status = self.get_server_status()
+            if server_status.active_connections == 0:
+                opportunities.append({
+                    'type': 'monitoring_enhancement',
+                    'target': 'rustdesk_monitoring',
+                    'description': 'Enhance RustDesk monitoring with advanced metrics collection',
+                    'priority': 'high',
+                    'requirements': ['Database access', 'Log analysis'],
+                    'benefits': ['Better visibility', 'Proactive issue detection', 'Performance optimization']
+                })
+            
+            # Check for security improvements
+            security_events = self.scan_security_events(24)
+            if len(security_events) > 5:
+                opportunities.append({
+                    'type': 'security_enhancement',
+                    'target': 'security_monitoring',
+                    'description': 'Implement advanced security monitoring and automated response',
+                    'priority': 'high',
+                    'requirements': ['Log analysis', 'Alerting system'],
+                    'benefits': ['Threat detection', 'Automated response', 'Compliance monitoring']
+                })
+        
+        except Exception as e:
+            self.logger.error(f"Failed to identify enhancement opportunities: {e}")
+        
+        return opportunities
+    
+    def _generate_enhancement_recommendations(self) -> List[Dict[str, Any]]:
+        """Generate specific recommendations for network enhancement."""
+        recommendations = []
+        
+        try:
+            # Analyze current state
+            home_devices = self.get_home_network_device_status()
+            kiro_sessions = self.detect_kiro_ide_sessions()
+            server_status = self.get_server_status()
+            
+            # Recommendation 1: Kiro IDE deployment
+            accessible_devices = sum(1 for status in home_devices.values() if status.get('kiro_ide_accessible'))
+            total_devices = len(home_devices)
+            
+            if accessible_devices < total_devices:
+                recommendations.append({
+                    'category': 'kiro_ide_deployment',
+                    'priority': 'medium',
+                    'title': 'Expand Kiro IDE Coverage',
+                    'description': f'Deploy Kiro IDE to {total_devices - accessible_devices} additional devices for comprehensive network management',
+                    'action_items': [
+                        'Enable SSH access on target devices',
+                        'Install Docker on compatible devices',
+                        'Deploy Kiro IDE containers',
+                        'Configure network access and security'
+                    ],
+                    'expected_benefits': [
+                        'Unified network management interface',
+                        'Automated code enhancement across devices',
+                        'Improved troubleshooting capabilities'
+                    ]
+                })
+            
+            # Recommendation 2: Monitoring enhancement
+            if not server_status.is_healthy:
+                recommendations.append({
+                    'category': 'monitoring_enhancement',
+                    'priority': 'high',
+                    'title': 'Enhance RustDesk Server Monitoring',
+                    'description': 'Implement comprehensive monitoring for RustDesk server components',
+                    'action_items': [
+                        'Set up health checks for all components',
+                        'Implement automated alerting',
+                        'Add performance metrics collection',
+                        'Create monitoring dashboards'
+                    ],
+                    'expected_benefits': [
+                        'Proactive issue detection',
+                        'Improved system reliability',
+                        'Better performance insights'
+                    ]
+                })
+            
+            # Recommendation 3: Security hardening
+            external_connections = self._detect_external_connections()
+            if external_connections:
+                recommendations.append({
+                    'category': 'security_hardening',
+                    'priority': 'high',
+                    'title': 'Secure External Access',
+                    'description': f'Address {len(external_connections)} external connections detected',
+                    'action_items': [
+                        'Review firewall rules',
+                        'Implement IP whitelisting',
+                        'Add VPN requirements for external access',
+                        'Enable connection logging and monitoring'
+                    ],
+                    'expected_benefits': [
+                        'Reduced security risk',
+                        'Better access control',
+                        'Improved compliance'
+                    ]
+                })
+            
+            # Recommendation 4: Network optimization
+            if len(kiro_sessions) > 0:
+                recommendations.append({
+                    'category': 'network_optimization',
+                    'priority': 'medium',
+                    'title': 'Optimize Kiro IDE Performance',
+                    'description': f'Optimize network performance for {len(kiro_sessions)} active Kiro IDE sessions',
+                    'action_items': [
+                        'Implement QoS rules for Kiro IDE traffic',
+                        'Optimize RustDesk relay configuration',
+                        'Add bandwidth monitoring',
+                        'Configure connection pooling'
+                    ],
+                    'expected_benefits': [
+                        'Improved response times',
+                        'Better user experience',
+                        'Reduced network congestion'
+                    ]
+                })
+        
+        except Exception as e:
+            self.logger.error(f"Failed to generate recommendations: {e}")
+        
+        return recommendationsservice_name] = {
                     'port': port,
                     'status': 'error',
                     'accessible': False,
