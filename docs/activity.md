@@ -291,3 +291,130 @@ This file tracks all development activities, commands run, files edited, and com
 - Device-specific configuration commands for all supported device types
 - Comprehensive backup functionality with metadata and checksums
 - All 11 unit tests pass successfully
+
+## Task 11: Configuration Deployment and Rollback - COMPLETED (July 22, 2025)
+
+### Actions Taken:
+- Extended ConfigManager with apply_config() method for safe configuration deployment
+- Implemented rollback_config() method with backup file parsing and restoration
+- Added comprehensive safety mechanisms and connectivity testing
+- Created complete test suite with 11 test methods covering all scenarios
+
+### Files Modified:
+- src/netarchon/core/config_manager.py - Extended with deployment functionality (added 165 lines)
+- New file: tests/unit/test_config_deployment.py - Comprehensive test suite (365 lines)
+
+### Key Features Implemented:
+- 9-step safe deployment process: backup → validation → connectivity test → deployment → verification
+- Device-specific command mapping for all supported vendors
+- Safety mechanisms: backup-first, connectivity testing, line-by-line application
+- Automatic rollback on connectivity loss or critical failures
+- Comprehensive test coverage: success/failure scenarios, validation, connectivity issues
+
+### Commit Information:
+- Commit: 27f49aa - "feat: Complete Task 11 - Configuration deployment and rollback"
+- All tests passing, atomic changes following CLAUDE.md principles
+
+## Task 12: Basic Monitoring and Metrics Collection - COMPLETED (July 22, 2025)
+
+### Actions Taken:
+- Created comprehensive MonitoringCollector class with interface and system metrics collection
+- Implemented structured data models for metrics storage and retrieval
+- Added support for all device types with device-specific command mapping
+- Created extensive test suite with 18 test methods
+
+### Files Created:
+- src/netarchon/core/monitoring.py - MonitoringCollector implementation (422 lines)
+- tests/unit/test_monitoring.py - Comprehensive test suite (474 lines)
+
+### Key Features Implemented:
+- Interface metrics collection: bytes, packets, errors, utilization
+- System metrics collection: CPU, memory, uptime, temperature, power
+- Device-specific monitoring commands for all supported platforms
+- In-memory storage with future database integration support
+- Graceful error handling with default values for partial failures
+- Historical data retrieval with time-based filtering
+
+### Commit Information:
+- Commit: 2919d15 - "feat: Complete Task 12 - Basic monitoring and metrics collection"
+- Foundation for Operations Pillar (Guardian) established
+
+## Web Development Planning - COMPLETED (July 22, 2025)
+
+### Actions Taken:
+- Created comprehensive Streamlit web development plan following CLAUDE.md principles
+- Updated from Vercel to Streamlit for Python-based web development
+- Designed architecture for mini PC deployment with optional cloud hosting
+
+### Files Created:
+- docs/web_development_plan.md - Complete Streamlit development strategy (352 lines)
+- Updated docs/web_architecture.md - Streamlit-focused architecture
+- Updated README.md - Streamlit deployment instructions
+- Updated tasks/current_plan.md - Web development roadmap
+
+### Key Features Planned:
+- 10-phase implementation plan (W1-W10) from framework to production
+- Direct integration with NetArchon core modules (no API layer needed)
+- Multi-page Streamlit application with real-time monitoring
+- Plotly charts, auto-refresh, interactive dashboards
+- Mini PC deployment with systemd service
+
+### Commit Information:
+- Commit: 16ebdb0 - "docs: Create comprehensive Streamlit web development plan"
+
+## Task 13: Monitoring Data Processing and Alerting - IN PROGRESS (July 22, 2025)
+
+### Actions Taken:
+- **WORKFLOW CORRECTION**: Initially failed to follow CLAUDE.md completely
+- Created comprehensive alert models and data structures
+- Implemented AlertManager with full alert lifecycle management
+- Extended MonitoringCollector with data processing capabilities
+- Created extensive test suite for alerting functionality
+
+### Files Created/Modified:
+1. **src/netarchon/models/alerts.py** (145 lines)
+   - Alert data models: AlertSeverity, AlertType, AlertStatus, AlertRule, Alert
+   - NotificationChannel and AlertSummary dataclasses
+   - Conversion methods for serialization
+
+2. **src/netarchon/core/alerting.py** (450+ lines)  
+   - AlertManager class with complete alert lifecycle management
+   - Threshold violation detection and status change processing
+   - Notification system with pluggable handlers
+   - Cooldown management and alert filtering
+
+3. **src/netarchon/core/monitoring.py** (extended by 220 lines)
+   - process_metrics_for_alerts() - Metric normalization
+   - compare_metrics() - Change detection between metric sets
+   - aggregate_metrics() - Time-window aggregation for trends
+
+4. **tests/unit/test_alerting.py** (500+ lines)
+   - 20+ test methods covering all alerting functionality
+   - Threshold detection, status changes, alert lifecycle tests
+   - Data model conversion and edge case testing
+
+5. **tasks/todo.md** (updated)
+   - Complete Task 13 breakdown following CLAUDE.md workflow
+   - Remaining tasks 14-18 planned with atomic changes
+   - Web development phase outlined
+
+### CLAUDE.md Compliance Status:
+- ✅ Initial analysis and planning completed
+- ✅ Todo list structure with checkboxes implemented
+- ✅ Atomic changes following Simplicity Principle
+- ✅ Process documentation in activity.md (this log)
+- 🔄 **CURRENT**: Run tests and commit with proper documentation
+
+### Key Features Implemented:
+- Alert processing pipeline: MetricData → AlertManager → Notifications
+- Configurable alert rules with multiple comparison operators
+- Status change detection for devices and interfaces
+- Alert lifecycle management (acknowledge/resolve)
+- Notification system with cooldown periods
+- Comprehensive filtering and summary reporting
+
+### Next Immediate Actions:
+1. Run tests to verify implementation
+2. Commit Task 13 with proper documentation
+3. Update todo.md review section
+4. Proceed to Task 14 following CLAUDE.md workflow

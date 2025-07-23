@@ -456,3 +456,222 @@ class MonitoringCollector:
             self.logger.debug(f"Power metrics collection failed: {str(e)}")
         
         return None
+    
+    def process_metrics_for_alerts(self, metrics: List[MetricData]) -> List[MetricData]:
+        """Process and normalize metrics for alert processing.
+        
+        Args:
+            metrics: Raw metrics to process
+            
+        Returns:
+            Processed metrics ready for alert evaluation
+        """
+        processed_metrics = []
+        
+        try:
+            for metric in metrics:
+                # Normalize metric values
+                normalized_metric = self._normalize_metric(metric)
+                if normalized_metric:
+                    processed_metrics.append(normalized_metric)
+            
+            self.logger.debug(f"Processed {len(processed_metrics)} metrics for alert evaluation",
+                            original_count=len(metrics), processed_count=len(processed_metrics))
+            
+        except Exception as e:
+            self.logger.error(f"Error processing metrics for alerts: {str(e)}")
+        
+        return processed_metrics
+    
+    def compare_metrics(self, current_metrics: List[MetricData], 
+                       previous_metrics: List[MetricData]) -> Dict[str, Any]:
+        """Compare current metrics with previous values to detect changes.
+        
+        Args:
+            current_metrics: Current metric values
+            previous_metrics: Previous metric values for comparison
+            
+        Returns:
+            Dictionary containing comparison results and detected changes
+        """
+        comparison_results = {
+            'changes_detected': False,
+            'significant_changes': [],
+            'new_metrics': [],
+            'missing_metrics': [],
+            'value_changes': []
+        }
+        
+        try:
+            # Create lookup dictionaries
+            current_lookup = {f"{m.device_id}_{m.metric_name}": m for m in current_metrics}
+            previous_lookup = {f"{m.device_id}_{m.metric_name}": m for m in previous_metrics}
+            
+            # Find new metrics
+            new_metric_keys = set(current_lookup.keys()) - set(previous_lookup.keys())
+            comparison_results['new_metrics'] = [current_lookup[key] for key in new_metric_keys]
+            
+            # Find missing metrics
+            missing_metric_keys = set(previous_lookup.keys()) - set(current_lookup.keys())
+            comparison_results['missing_metrics'] = [previous_lookup[key] for key in missing_metric_keys]
+            
+            # Compare existing metrics
+            common_keys = set(current_lookup.keys()) & set(previous_lookup.keys())
+            for key in common_keys:
+                current = current_lookup[key]
+                previous = previous_lookup[key]
+                
+                # Check for value changes
+                if self._is_significant_change(current, previous):
+                    comparison_results['value_changes'].append({
+                        'metric': current,
+                        'previous_value': previous.value,
+                        'current_value': current.value,
+                        'change_percent': self._calculate_change_percent(current.value, previous.value)
+                    })
+                    comparison_results['significant_changes'].append(current)
+            
+            # Set overall change flag
+            comparison_results['changes_detected'] = (
+                len(comparison_results['new_metrics']) > 0 or
+                len(comparison_results['missing_metrics']) > 0 or
+                len(comparison_results['significant_changes']) > 0
+            )
+            
+            self.logger.debug(f"Metric comparison completed",
+                            changes_detected=comparison_results['changes_detected'],
+                            new_metrics=len(comparison_results['new_metrics']),
+                            missing_metrics=len(comparison_results['missing_metrics']),
+                            value_changes=len(comparison_results['value_changes']))
+            
+        except Exception as e:
+            self.logger.error(f"Error comparing metrics: {str(e)}")
+        
+        return comparison_results
+    
+    def aggregate_metrics(self, metrics: List[MetricData], 
+                         aggregation_window_minutes: int = 5) -> List[MetricData]:
+        """Aggregate metrics over a time window for trend analysis.
+        
+        Args:
+            metrics: Metrics to aggregate
+            aggregation_window_minutes: Time window for aggregation in minutes
+            
+        Returns:
+            Aggregated metrics
+        """
+        aggregated_metrics = []
+        
+        try:
+            # Group metrics by device and metric name
+            from collections import defaultdict
+            metric_groups = defaultdict(list)
+            for metric in metrics:
+                key = f"{metric.device_id}_{metric.metric_name}_{metric.metric_type.value}"
+                metric_groups[key].append(metric)
+            
+            # Aggregate each group
+            for group_key, group_metrics in metric_groups.items():
+                if len(group_metrics) > 1:
+                    aggregated = self._aggregate_metric_group(group_metrics)
+                    if aggregated:
+                        aggregated_metrics.append(aggregated)
+                else:
+                    # Single metric, no aggregation needed
+                    aggregated_metrics.extend(group_metrics)
+            
+            self.logger.debug(f"Aggregated {len(metrics)} metrics into {len(aggregated_metrics)} groups")
+            
+        except Exception as e:
+            self.logger.error(f"Error aggregating metrics: {str(e)}")
+        
+        return aggregated_metrics
+    
+    def _normalize_metric(self, metric: MetricData) -> Optional[MetricData]:
+        """Normalize a metric for consistent processing."""
+        try:
+            # Ensure numeric values are properly typed
+            if isinstance(metric.value, str):
+                # Try to convert string values to numbers
+                try:
+                    metric.value = float(metric.value)
+                except ValueError:
+                    # Keep as string if not numeric
+                    pass
+            
+            # Ensure unit is standardized
+            metric.unit = metric.unit.lower() if metric.unit else ""
+            
+            return metric
+            
+        except Exception as e:
+            self.logger.warning(f"Failed to normalize metric: {str(e)}")
+            return None
+    
+    def _is_significant_change(self, current: MetricData, previous: MetricData) -> bool:
+        """Determine if metric change is significant enough to report."""
+        try:
+            # For numeric values, check percentage change
+            if isinstance(current.value, (int, float)) and isinstance(previous.value, (int, float)):
+                if previous.value == 0:
+                    return current.value != 0
+                
+                change_percent = abs((current.value - previous.value) / previous.value * 100)
+                # Consider >10% change as significant for most metrics
+                return change_percent > 10.0
+            
+            # For string values, any change is significant
+            return current.value != previous.value
+            
+        except Exception:
+            return False
+    
+    def _calculate_change_percent(self, current_value: any, previous_value: any) -> Optional[float]:
+        """Calculate percentage change between two values."""
+        try:
+            if isinstance(current_value, (int, float)) and isinstance(previous_value, (int, float)):
+                if previous_value == 0:
+                    return 100.0 if current_value != 0 else 0.0
+                return (current_value - previous_value) / previous_value * 100
+            return None
+        except Exception:
+            return None
+    
+    def _aggregate_metric_group(self, metrics: List[MetricData]) -> Optional[MetricData]:
+        """Aggregate a group of similar metrics."""
+        try:
+            if not metrics:
+                return None
+            
+            # Use the latest metric as base
+            base_metric = max(metrics, key=lambda m: m.timestamp)
+            
+            # For numeric metrics, calculate average
+            numeric_values = []
+            for metric in metrics:
+                if isinstance(metric.value, (int, float)):
+                    numeric_values.append(metric.value)
+            
+            if numeric_values:
+                # Create aggregated metric with average value
+                aggregated_value = sum(numeric_values) / len(numeric_values)
+                return MetricData(
+                    device_id=base_metric.device_id,
+                    metric_type=base_metric.metric_type,
+                    metric_name=base_metric.metric_name,
+                    value=aggregated_value,
+                    unit=base_metric.unit,
+                    timestamp=base_metric.timestamp,
+                    metadata={
+                        'aggregated': True,
+                        'sample_count': len(metrics),
+                        'aggregation_window': 'auto'
+                    }
+                )
+            
+            # For non-numeric metrics, return the latest
+            return base_metric
+            
+        except Exception as e:
+            self.logger.warning(f"Failed to aggregate metric group: {str(e)}")
+            return None
