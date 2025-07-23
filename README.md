@@ -1,239 +1,227 @@
-# NetArchon AI Network Engineer
+# NetArchon
 
-**NetArchon** is an autonomous AI agent that embodies the complete skill set of a senior network engineer. Built around five core functional pillars, NetArchon can design, implement, manage, and secure computer networks while providing Monitoring-as-a-Service (MaaS) capabilities.
+A comprehensive Python library for network device automation, configuration management, and monitoring.
 
-## 🏗️ The Five Pillars Architecture
+## Features
 
-### 1. Design & Planning (The Architect) 🏗️
-- Network topology design and IP addressing schemes
-- Hardware recommendations and capacity planning
-- Configuration template generation
-- Infrastructure documentation and diagrams
+- **Multi-vendor Support**: Works with Cisco IOS, NX-OS, Juniper JunOS, Arista EOS, and more
+- **SSH Connection Management**: Robust connection pooling and management
+- **Configuration Management**: Backup, deploy, validate, and rollback configurations
+- **Real-time Monitoring**: Collect metrics and generate alerts based on thresholds
+- **Error Handling**: Circuit breaker patterns and retry mechanisms for reliability
+- **Concurrent Operations**: Handle multiple devices simultaneously
+- **Extensible Architecture**: Easy to add support for new device types
 
-### 2. Implementation & Deployment (The Builder) 🔧
-- **✅ SSH connectivity** with connection pooling and multi-vendor support
-- **✅ Command execution** framework with privilege escalation
-- **✅ Device detection** and management (Cisco, Juniper, Arista)
-- **✅ Configuration management** with backup and rollback safety
-
-### 3. Operations & Maintenance (The Guardian) 🛡️
-- Real-time monitoring and metrics collection
-- Automated root cause analysis and incident response
-- Integration with ticketing systems
-- Performance baseline establishment
-
-### 4. Security & Compliance (The Sentinel) 🔒
-- Firewall rule and ACL management
-- Security audit automation and compliance reporting
-- Traffic analysis and threat detection
-- Vulnerability assessment and remediation
-
-### 5. MaaS & Insights (The Analyst) 📊
-- **Key Differentiator**: ML-based predictive analytics
-- Performance trending and capacity forecasting
-- Network optimization recommendations
-- Executive dashboards and reporting
-
-## 🚀 Quick Start
-
-### Prerequisites
-- Python 3.9 or higher
-- SSH access to network devices
-- Administrative credentials for target devices
+## Quick Start
 
 ### Installation
 
-1. **Clone the repository**
-   ```bash
-   git clone <repository-url>
-   cd NetArchon/AINetwork
-   ```
-
-2. **Install dependencies**
-   ```bash
-   pip install -r requirements.txt
-   ```
-
-3. **Verify installation**
-   ```bash
-   python3 -m pytest tests/ -v
-   ```
+```bash
+pip install netarchon
+```
 
 ### Basic Usage
 
 ```python
-from src.netarchon.core.ssh_connector import SSHConnector
-from src.netarchon.core.device_manager import DeviceDetector
-from src.netarchon.core.config_manager import ConfigManager
-from src.netarchon.models.connection import ConnectionInfo, ConnectionType, ConnectionStatus
+from netarchon.core.ssh_connector import SSHConnector
+from netarchon.core.command_executor import CommandExecutor
+from netarchon.models.device import Device, DeviceType
+from netarchon.models.connection import ConnectionParameters
 
-# Create connection
-connection = ConnectionInfo(
-    device_id="router1",
-    host="192.168.1.1",
-    port=22,
-    username="admin",
-    connection_type=ConnectionType.SSH,
-    status=ConnectionStatus.CONNECTED
+# Create a device
+device = Device(
+    name="router1",
+    hostname="192.168.1.1",
+    device_type=DeviceType.CISCO_IOS,
+    connection_params=ConnectionParameters(
+        username="admin",
+        password="password"
+    )
 )
 
-# Connect to device
-ssh = SSHConnector()
-ssh.connect("192.168.1.1", "admin", "password")
+# Connect and execute commands
+ssh_connector = SSHConnector()
+command_executor = CommandExecutor(ssh_connector)
 
-# Detect device type
-detector = DeviceDetector()
-device_type = detector.detect_device_type(connection)
-
-# Backup configuration
-config_manager = ConfigManager()
-backup_path = config_manager.backup_config(connection, "Initial backup")
+ssh_connector.connect(device)
+result = command_executor.execute_command(device, "show version")
+print(result.output)
 ```
 
-## 📊 Current Status
+## Documentation
 
-### ✅ Completed Features (Tasks 1-10)
-- **Core Infrastructure**: SSH connectivity, command execution, device management
-- **Device Support**: Cisco IOS/NX-OS, Juniper JUNOS, Arista EOS, Generic devices
-- **Configuration Management**: Backup functionality with metadata and validation
-- **Test Coverage**: 96% pass rate (190/198 tests)
-- **Code Quality**: 1,685 lines of production code + 3,315 lines of tests
+- [User Guide](docs/user_guide.md)
+- [API Reference](docs/api_reference.md)
+- [Configuration Guide](docs/configuration.md)
+- [Troubleshooting](docs/troubleshooting.md)
+- [Contributing](docs/contributing.md)
 
-### 🎯 In Development (Tasks 11-18)
-- **Configuration Deployment**: Safe config application with rollback
-- **Monitoring System**: Real-time metrics collection and alerting
-- **Web Dashboard**: Visualization interface for network insights
-- **Error Recovery**: Circuit breakers and retry mechanisms
-- **Integration Tests**: End-to-end workflow validation
+## Examples
 
-## 🌐 Web Interface
+Check out the [examples](examples/) directory for complete working examples:
 
-NetArchon includes a web-based dashboard for visualization and management:
+- [Basic Device Connection](examples/basic_device_connection.py)
+- [Configuration Management](examples/configuration_management.py)
+- [Monitoring and Alerting](examples/monitoring_example.py)
 
-### Features
-- **Real-time Monitoring**: Live device status and metrics
-- **Configuration Management**: Web-based config deployment and rollback
-- **Network Topology**: Visual representation of network infrastructure
-- **Analytics Dashboard**: Performance trends and capacity planning
-- **Alert Management**: Notification center for network events
+## Development
 
-### Local Development
+### Setup Development Environment
+
 ```bash
-# Start Streamlit dashboard (coming soon)
-streamlit run src/netarchon/web/streamlit_app.py
+# Clone the repository
+git clone https://github.com/yourusername/netarchon.git
+cd netarchon
 
-# Access dashboard
-# http://localhost:8501
+# Setup development environment
+python scripts/setup_dev_env.py
+
+# Activate virtual environment
+source .venv/bin/activate  # Linux/Mac
+# or
+.venv\Scripts\activate  # Windows
 ```
 
-### Production Deployment
+### Running Tests
+
 ```bash
-# Mini PC deployment (coming soon)
-sudo systemctl start netarchon-streamlit
+# Run all tests
+make test
 
-# Access from any device on network
-# http://mini-pc-ip:8501
+# Run specific test types
+make test-unit
+make test-integration
+make test-performance
+
+# Run with coverage
+make test-coverage
 ```
 
-## 🔧 Supported Devices
+### Code Quality
 
-| Vendor | Device Type | Status | Configuration | Monitoring |
-|--------|-------------|--------|---------------|------------|
-| Cisco | IOS | ✅ Full | ✅ Backup/Deploy | ✅ Metrics |
-| Cisco | NX-OS | ✅ Full | ✅ Backup/Deploy | ✅ Metrics |
-| Juniper | JUNOS | ✅ Full | ✅ Backup/Deploy | ✅ Metrics |
-| Arista | EOS | ✅ Full | ✅ Backup/Deploy | ✅ Metrics |
-| Generic | Any | ✅ Basic | ✅ Backup | 🔄 Limited |
-
-## 📚 Documentation
-
-### Core Components
-- **[SSH Connector](src/netarchon/core/ssh_connector.py)**: Multi-vendor SSH connectivity with pooling
-- **[Command Executor](src/netarchon/core/command_executor.py)**: Secure command execution with privilege escalation
-- **[Device Manager](src/netarchon/core/device_manager.py)**: Device detection and capability management
-- **[Config Manager](src/netarchon/core/config_manager.py)**: Configuration backup and validation
-
-### Development
-- **[Development Guide](CLAUDE.md)**: Comprehensive development workflow and task breakdown
-- **[Activity Log](docs/activity.md)**: Complete development history and progress tracking
-- **[Current Plan](tasks/current_plan.md)**: Detailed implementation roadmap
-
-## 🧪 Testing
-
-### Run Tests
 ```bash
-# All tests
-python3 -m pytest tests/ -v
+# Run linting
+make lint
 
-# Specific component
-python3 -m pytest tests/unit/test_ssh_connector.py -v
+# Fix formatting
+make format
 
-# With coverage
-python3 -m pytest tests/ --cov=src/netarchon --cov-report=html
+# Check formatting
+make format-check
 ```
 
-### Test Coverage
-- **SSH Connectivity**: 18 tests covering connection pooling and authentication
-- **Command Execution**: 40 tests including privilege escalation scenarios
-- **Device Management**: 35 tests across all supported device types
-- **Configuration Management**: 11 tests for backup and validation
+## Configuration
 
-## 🛣️ Roadmap
+NetArchon can be configured using YAML or JSON files. Default configuration locations:
 
-### Phase 1: Core Functionality (Current)
-- [x] SSH connectivity and device detection
-- [x] Configuration backup and validation
-- [ ] Configuration deployment and rollback
-- [ ] Basic monitoring and metrics collection
+- `./config/config.yaml`
+- `~/.netarchon/config.yaml`
+- `/etc/netarchon/config.yaml`
 
-### Phase 2: Operations Platform
-- [ ] Real-time monitoring dashboard
-- [ ] Alerting and notification system
-- [ ] Performance analytics and reporting
-- [ ] Integration with external systems
+Example configuration:
 
-### Phase 3: Advanced Features
-- [ ] Predictive analytics and ML integration
-- [ ] Security audit automation
-- [ ] Network topology discovery
-- [ ] Capacity planning recommendations
+```yaml
+# Core settings
+core:
+  default_timeout: 30
+  max_concurrent_connections: 10
+  connection_retries: 3
 
-### Phase 4: Enterprise Ready
-- [ ] Multi-tenant support
-- [ ] Role-based access control
-- [ ] API rate limiting and quotas
-- [ ] Enterprise integration (LDAP, SSO)
+# SSH settings
+ssh:
+  port: 22
+  timeout: 10
+  keepalive_interval: 30
 
-## 🤝 Contributing
+# Monitoring settings
+monitoring:
+  interval: 300
+  enable_metrics: true
+  metrics_dir: "./metrics"
 
-NetArchon follows a strict development workflow emphasizing simplicity and atomic changes:
+# Alerting settings
+alerting:
+  enable_alerts: true
+  notification_methods: ["email"]
+  cooldown_period: 300
+```
 
-1. **Plan**: Create detailed task breakdown in `tasks/todo.md`
-2. **Implement**: Write minimal, simple code following the Simplicity Principle
-3. **Test**: Ensure comprehensive test coverage
-4. **Document**: Update `docs/activity.md` with all changes
-5. **Commit**: Make atomic commits with clear messages
+## Supported Devices
 
-See [CLAUDE.md](CLAUDE.md) for complete development guidelines.
+| Vendor | Device Types | Status |
+|--------|-------------|--------|
+| Cisco | IOS, IOS-XE, NX-OS | ✅ Supported |
+| Juniper | JunOS | ✅ Supported |
+| Arista | EOS | ✅ Supported |
+| HP/HPE | Comware, ProCurve | 🚧 In Progress |
+| Huawei | VRP | 🚧 In Progress |
 
-## 📄 License
+## Architecture
+
+NetArchon follows a modular architecture:
+
+```
+┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐
+│   Applications  │    │    Examples     │    │     Tests       │
+└─────────────────┘    └─────────────────┘    └─────────────────┘
+         │                       │                       │
+┌─────────────────────────────────────────────────────────────────┐
+│                        Core Modules                             │
+├─────────────────┬─────────────────┬─────────────────────────────┤
+│ SSH Connector   │ Command Executor│ Device Manager              │
+├─────────────────┼─────────────────┼─────────────────────────────┤
+│ Config Manager  │ Monitoring      │ Alerting                    │
+└─────────────────┴─────────────────┴─────────────────────────────┘
+         │                       │                       │
+┌─────────────────────────────────────────────────────────────────┐
+│                        Data Models                              │
+├─────────────────┬─────────────────┬─────────────────────────────┤
+│ Device Models   │ Connection      │ Metrics & Alerts            │
+└─────────────────┴─────────────────┴─────────────────────────────┘
+         │                       │                       │
+┌─────────────────────────────────────────────────────────────────┐
+│                        Utilities                                │
+├─────────────────┬─────────────────┬─────────────────────────────┤
+│ Exceptions      │ Logging         │ Circuit Breaker & Retry     │
+└─────────────────┴─────────────────┴─────────────────────────────┘
+```
+
+## Contributing
+
+We welcome contributions! Please see our [Contributing Guide](docs/contributing.md) for details.
+
+### Development Workflow
+
+1. Fork the repository
+2. Create a feature branch
+3. Make your changes
+4. Add tests for new functionality
+5. Run the test suite
+6. Submit a pull request
+
+## License
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
-## 🆘 Support
+## Support
 
-- **Issues**: Report bugs and feature requests via GitHub Issues
-- **Documentation**: Comprehensive guides in the `docs/` directory
-- **Development**: Follow the essential workflow in `CLAUDE.md`
+- 📖 [Documentation](docs/)
+- 🐛 [Issue Tracker](https://github.com/yourusername/netarchon/issues)
+- 💬 [Discussions](https://github.com/yourusername/netarchon/discussions)
+- 📧 Email: support@netarchon.dev
 
-## ⭐ Acknowledgments
+## Changelog
 
-Built with:
-- **Python 3.9+** for core implementation
-- **Paramiko** for SSH connectivity
-- **pytest** for comprehensive testing
-- **Claude Code** for AI-assisted development
+See [CHANGELOG.md](CHANGELOG.md) for a list of changes and version history.
+
+## Roadmap
+
+- [ ] Web-based management interface
+- [ ] REST API for remote management
+- [ ] Plugin system for custom device types
+- [ ] Advanced analytics and reporting
+- [ ] Integration with popular monitoring systems
 
 ---
 
-**NetArchon** - Transforming network operations through autonomous AI engineering.
+**NetArchon** - Simplifying network automation, one device at a time.
