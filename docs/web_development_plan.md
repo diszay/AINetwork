@@ -1,7 +1,12 @@
 # NetArchon Web Development Plan
 
-## Overview
-This document outlines the comprehensive web development strategy for NetArchon following the Essential Development Workflow from CLAUDE.md. The web interface will use Streamlit for rapid development and will run locally on your mini PC with optional cloud deployment.
+## What This Document Is About
+
+**For Everyone:**
+This document explains how we're building the web interface (the part you see in your browser) for NetArchon. Think of it as the blueprint for creating your network dashboard - the visual interface that lets you see and control your network.
+
+**For Developers:**
+This document outlines the comprehensive web development strategy for NetArchon following the Essential Development Workflow from CLAUDE.md. The web interface uses Streamlit for rapid development and is designed to run locally on your mini PC with optional cloud deployment capabilities.
 
 ## 🔥 ESSENTIAL DEVELOPMENT WORKFLOW COMPLIANCE
 

@@ -1,540 +1,516 @@
 # NetArchon Frequently Asked Questions (FAQ)
 
-This document answers common questions about NetArchon usage, configuration, and troubleshooting.
+**Got questions about NetArchon?** This FAQ covers the most common questions from both beginners and technical users.
 
-## Table of Contents
-
-1. [General Questions](#general-questions)
-2. [Installation and Setup](#installation-and-setup)
-3. [Device Support](#device-support)
-4. [Connection and Authentication](#connection-and-authentication)
-5. [Configuration Management](#configuration-management)
-6. [Monitoring and Alerting](#monitoring-and-alerting)
-7. [Performance and Scalability](#performance-and-scalability)
-8. [Security](#security)
-9. [Development and Customization](#development-and-customization)
-10. [Troubleshooting](#troubleshooting)
-
-## General Questions
+## 🤔 General Questions
 
 ### What is NetArchon?
 
-NetArchon is a comprehensive Python library for network device automation, configuration management, and monitoring. It provides a unified interface for managing network devices from multiple vendors including Cisco, Juniper, Arista, and others.
+**Simple Answer:**
+NetArchon is like having a professional network engineer living in your home, watching over your internet connection 24/7. It monitors your internet speed, tracks all your connected devices, and alerts you when something needs attention.
 
-### What can I do with NetArchon?
+**Technical Answer:**
+NetArchon is an AI-powered network management system that provides comprehensive monitoring, automated configuration management, intelligent alerting, and security analysis for home and small business networks. It integrates with BitWarden for credential management and RustDesk for remote desktop monitoring.
 
-- **Device Management**: Connect to and manage network devices via SSH
-- **Configuration Management**: Backup, deploy, validate, and rollback configurations
-- **Monitoring**: Collect metrics and monitor device performance
-- **Alerting**: Set up thresholds and receive notifications
-- **Automation**: Automate repetitive network tasks
-- **Bulk Operations**: Perform operations across multiple devices simultaneously
+### Do I need to be technical to use NetArchon?
 
-### Is NetArchon free to use?
+**No!** NetArchon is designed for everyone:
+- **Beginners**: Use the simple web dashboard to monitor your network
+- **Tech enthusiasts**: Access advanced features and automation
+- **Network professionals**: Full API access and customization options
 
-Yes, NetArchon is open-source software released under the MIT License. You can use it freely for both personal and commercial purposes.
+### What devices does NetArchon work with?
 
-### How does NetArchon compare to other network automation tools?
+**Home Devices:**
+- Any WiFi router (Netgear, Linksys, ASUS, etc.)
+- Cable/DSL modems (Arris, Motorola, etc.)
+- Smart home devices
+- Computers, phones, tablets
 
-NetArchon focuses on providing a simple, Python-native interface for network automation. Unlike some alternatives:
+**Professional Equipment:**
+- Cisco routers and switches
+- Juniper Networks equipment
+- Arista switches
+- Any device that supports SSH
 
-- **Pure Python**: No external dependencies on network automation frameworks
-- **Multi-vendor**: Built-in support for multiple device types
-- **Monitoring**: Integrated monitoring and alerting capabilities
-- **Extensible**: Easy to extend for custom device types and use cases
+### Is NetArchon free?
 
-## Installation and Setup
+**Yes!** NetArchon is open-source software that you can use for free. You can:
+- Download and install it at no cost
+- Use all features without limitations
+- Modify it for your needs (if you're technical)
+- Contribute improvements back to the community
 
-### What are the system requirements?
-
-- Python 3.8 or higher
-- SSH access to target network devices
-- Network connectivity to devices
-- Sufficient permissions on devices for intended operations
+## 🔧 Installation & Setup
 
 ### How do I install NetArchon?
 
+**Simple Installation:**
 ```bash
-# From PyPI (recommended)
 pip install netarchon
-
-# From source
-git clone https://github.com/yourusername/netarchon.git
-cd netarchon
-pip install -e .
+streamlit run netarchon
 ```
+Then open `http://localhost:8501` in your browser.
 
-### How do I set up a development environment?
+**Detailed Instructions:**
+See our [Installation Guide](installation.md) for complete step-by-step instructions.
 
-```bash
-# Clone the repository
-git clone https://github.com/yourusername/netarchon.git
-cd netarchon
+### What do I need to run NetArchon?
 
-# Run the setup script
-python scripts/setup_dev_env.py
+**Minimum Requirements:**
+- Any computer (Windows, Mac, or Linux)
+- Python 3.8 or higher
+- 2GB RAM
+- Internet connection
 
-# Activate the virtual environment
-source .venv/bin/activate  # Linux/Mac
-# or
-.venv\Scripts\activate  # Windows
-```
+**Recommended Setup:**
+- Dedicated Mini PC or server
+- 4GB RAM
+- Ubuntu 24.04 LTS or Linux Mint
+- Always-on internet connection
 
-### Where should I put configuration files?
+### Can I run NetArchon on a Raspberry Pi?
 
-NetArchon looks for configuration files in these locations (in order):
-1. `./config/config.yaml` (current directory)
-2. `~/.netarchon/config.yaml` (user home directory)
-3. `/etc/netarchon/config.yaml` (system-wide)
+**Yes!** NetArchon works great on Raspberry Pi:
+- Raspberry Pi 4 with 4GB RAM (recommended)
+- Raspberry Pi 3B+ with 2GB RAM (minimum)
+- Use Raspberry Pi OS or Ubuntu Server
+- Follow the Linux installation instructions
 
-### Can I use JSON instead of YAML for configuration?
+### How do I access NetArchon from other devices?
 
-Yes, NetArchon supports both YAML and JSON configuration files. Use the appropriate file extension (`.yaml`, `.yml`, or `.json`).
+**From other computers on your network:**
+1. Find your NetArchon computer's IP address
+2. Open a browser on any device
+3. Go to: `http://YOUR-COMPUTER-IP:8501`
+4. Example: `http://192.168.1.100:8501`
 
-## Device Support
+## 🏠 Home Network Monitoring
 
-### Which device types are supported?
+### What will NetArchon monitor in my home?
 
-Currently supported:
-- **Cisco**: IOS, IOS-XE, NX-OS
-- **Juniper**: JunOS
-- **Arista**: EOS
-- **Generic**: Any SSH-enabled device
+**Automatically Monitored:**
+- Internet speed and connectivity
+- All connected devices (phones, laptops, smart TVs, etc.)
+- WiFi signal strength and quality
+- Data usage and bandwidth consumption
+- Device connection/disconnection events
 
-Planned support:
-- HP/HPE Comware and ProCurve
-- Huawei VRP
-- Fortinet FortiOS
+**With Device Credentials:**
+- Router configuration and status
+- Modem signal quality
+- Advanced network metrics
+- Security settings and logs
 
-### How do I add support for a new device type?
+### How does NetArchon know about my devices?
 
-1. Create a new device type in `DeviceType` enum
-2. Add device-specific command patterns
-3. Implement device detection logic
-4. Add metric definitions for the device type
-5. Write tests for the new device type
+**Automatic Discovery:**
+NetArchon scans your network to find devices automatically. It can detect:
+- Device names and types
+- IP and MAC addresses
+- Connection status
+- Basic information
 
-See the [Contributing Guide](contributing.md) for detailed instructions.
+**Enhanced Monitoring:**
+For routers and modems, you can provide admin credentials for detailed monitoring of:
+- Configuration settings
+- Performance metrics
+- Security logs
+- Advanced diagnostics
 
-### Can NetArchon auto-detect device types?
+### Will NetArchon slow down my internet?
 
-Yes, NetArchon can automatically detect device types using the `DeviceManager.detect_device_type()` method. It analyzes system information to determine the device type.
+**No!** NetArchon is designed to be network-friendly:
+- Uses minimal bandwidth for monitoring
+- Runs lightweight scans that don't impact performance
+- Configurable monitoring intervals
+- Optimized for home network environments
 
-### What if my device isn't officially supported?
+### Can NetArchon monitor my internet usage?
 
-You can use the `DeviceType.GENERIC` type for basic SSH operations. Many features will still work, though device-specific optimizations may not be available.
+**Yes!** NetArchon tracks:
+- Total data usage over time
+- Usage by device
+- Peak usage times
+- Trends and patterns
+- Data cap warnings (if applicable)
 
-## Connection and Authentication
+## 🔒 Security & Privacy
 
-### What authentication methods are supported?
+### Is NetArchon secure?
 
-- **Password authentication**: Username and password
-- **Key-based authentication**: SSH private keys (with optional passphrase)
-- **Agent authentication**: SSH agent forwarding
-- **Mixed authentication**: Combination of methods
+**Absolutely!** Security is our top priority:
+- **Local Operation**: All data stays on your computer
+- **Encrypted Storage**: Passwords protected with military-grade encryption
+- **Home Network Only**: Cannot access anything outside your network
+- **No Data Collection**: We don't collect or transmit your personal data
+- **Open Source**: Code is publicly auditable
 
-### How do I use SSH keys for authentication?
+### What information does NetArchon collect?
 
-```python
-from netarchon.models.connection import ConnectionParameters
+**NetArchon only collects information about your network:**
+- Device connection status
+- Network performance metrics
+- Configuration backups (stored locally)
+- Security events and alerts
 
-connection_params = ConnectionParameters(
-    username="admin",
-    private_key_path="/path/to/private/key",
-    private_key_passphrase="key_passphrase"  # Optional
-)
-```
+**NetArchon NEVER collects:**
+- Personal files or documents
+- Web browsing history
+- Personal communications
+- Data from outside your network
 
-### Can I connect to devices on non-standard SSH ports?
+### Where is my data stored?
 
-Yes, specify the port in the connection parameters:
+**Everything stays local:**
+- Data stored on your computer only
+- SQLite database in your NetArchon directory
+- Configuration backups in local folders
+- No cloud storage or external transmission
 
-```python
-connection_params = ConnectionParameters(
-    username="admin",
-    password="password",
-    port=2222  # Custom SSH port
-)
-```
+### Can NetArchon access my personal files?
 
-### How does connection pooling work?
+**No!** NetArchon only monitors network-related information:
+- Network device status and configuration
+- Internet connectivity and performance
+- Device connection events
+- Network security events
 
-NetArchon automatically manages connection pools to improve performance:
-- Connections are reused when possible
-- Idle connections are automatically closed after a timeout
-- Pool size is configurable (default: 10 connections)
-- Thread-safe for concurrent operations
+It cannot and does not access personal files, documents, or applications.
 
-### What happens if a connection is lost?
+## 🔐 Password Management
 
-NetArchon includes several mechanisms to handle connection issues:
-- **Automatic reconnection**: Attempts to reconnect on connection loss
-- **Circuit breaker**: Prevents repeated connection attempts to failing devices
-- **Retry logic**: Configurable retry attempts with backoff strategies
-- **Graceful degradation**: Operations continue on other devices if one fails
+### How does BitWarden integration work?
 
-## Configuration Management
+**For Everyone:**
+If you use BitWarden password manager, NetArchon can automatically retrieve your router and device passwords, so you don't have to enter them manually.
 
-### Can I backup configurations from multiple devices?
+**Technical Details:**
+- Secure API integration with BitWarden CLI
+- Encrypted credential storage with AES-256
+- Automatic device-to-credential mapping
+- Fallback to manual credentials if needed
 
-Yes, use the bulk configuration management features:
+### Do I need BitWarden to use NetArchon?
 
-```python
-from netarchon.examples.bulk_configuration import BulkConfigManager
+**No!** BitWarden integration is optional:
+- **With BitWarden**: Automatic password management
+- **Without BitWarden**: Enter device passwords manually
+- Both methods work equally well
 
-bulk_manager = BulkConfigManager()
-# Add devices...
-backup_results = bulk_manager.backup_all_devices()
-```
+### Is it safe to store my router passwords in NetArchon?
 
-### How do I validate configurations before deployment?
+**Yes!** NetArchon uses enterprise-grade security:
+- AES-256 encryption for all stored passwords
+- PBKDF2 password hashing with 100,000 iterations
+- Secure key derivation and storage
+- Local storage only (never transmitted)
 
-```python
-# Validate before deploying
-is_valid = config_manager.validate_config(device, new_config)
-if is_valid:
-    config_manager.deploy_config(device, new_config)
-else:
-    print("Configuration validation failed")
-```
+## 📊 Monitoring & Alerts
 
-### What happens if a configuration deployment fails?
+### What kind of alerts can NetArchon send?
 
-NetArchon provides several safety mechanisms:
-- **Automatic backup**: Creates backup before changes
-- **Validation**: Optional pre-deployment validation
-- **Rollback**: Automatic or manual rollback on failure
-- **Connectivity checks**: Ensures device remains reachable
+**Common Alerts:**
+- Internet connection problems
+- Device going offline
+- High data usage
+- Slow internet speeds
+- Security threats
+- Configuration changes
 
-### Can I use configuration templates?
-
-Yes, NetArchon supports template-based configuration management:
-
-```python
-from netarchon.examples.bulk_configuration import ConfigurationTemplate
-
-template = ConfigurationTemplate(template_content)
-config = template.render(variables)
-```
-
-### How do I handle different configuration formats?
-
-NetArchon adapts to different device configuration formats automatically based on the device type. You can also specify custom parsers for specific devices.
-
-## Monitoring and Alerting
-
-### What metrics can I collect?
-
-Common metrics include:
-- **Performance**: CPU utilization, memory usage
-- **Interfaces**: Status, utilization, errors
-- **Environment**: Temperature, power consumption
-- **Custom**: Any command output can be parsed into metrics
-
-### How do I set up custom metrics?
-
-```python
-from netarchon.models.metrics import MetricDefinition
-
-custom_metric = MetricDefinition(
-    name="custom_metric",
-    description="Custom metric description",
-    command="show custom command",
-    parser="regex",
-    parser_args={"pattern": r"Value: (\d+)", "group": 1},
-    result_type="int"
-)
-```
-
-### Can I monitor multiple devices simultaneously?
-
-Yes, NetArchon supports concurrent monitoring:
-
-```python
-# Monitor devices in parallel
-with ThreadPoolExecutor(max_workers=10) as executor:
-    futures = [executor.submit(collect_metrics, device) for device in devices]
-    results = [future.result() for future in as_completed(futures)]
-```
+**Alert Methods:**
+- Email notifications
+- In-dashboard notifications
+- Webhook integrations
+- Slack messages (if configured)
 
 ### How do I set up email alerts?
 
-Configure email settings in your configuration file:
+**Simple Setup:**
+1. Go to "📊 Monitoring" in your dashboard
+2. Click "Alert Settings"
+3. Enter your email address
+4. Configure what you want to be notified about
+5. Test the alert system
 
-```yaml
-alerting:
-  enable_alerts: true
-  notification_methods: ["email"]
-  email:
-    server: "smtp.example.com"
-    port: 587
-    use_tls: true
-    username: "alerts@example.com"
-    password: "password"
-    from_address: "alerts@example.com"
-    to_addresses: ["admin@example.com"]
+**Technical Setup:**
+Configure SMTP settings in the configuration file or environment variables.
+
+### Can I customize alert thresholds?
+
+**Yes!** You can adjust:
+- CPU usage thresholds
+- Memory usage limits
+- Internet speed minimums
+- Data usage warnings
+- Device offline timeouts
+- Custom metric thresholds
+
+## 🖥️ Remote Desktop Monitoring
+
+### What is RustDesk integration?
+
+**For Everyone:**
+If you use remote desktop software to access your computers from anywhere, NetArchon can monitor those connections to ensure they're secure and working properly.
+
+**Technical Details:**
+RustDesk is an open-source remote desktop solution. NetArchon can:
+- Monitor active remote desktop sessions
+- Track connection security and performance
+- Deploy RustDesk clients automatically
+- Analyze connection logs for security events
+
+### Do I need RustDesk to use NetArchon?
+
+**No!** RustDesk integration is optional:
+- NetArchon works perfectly without RustDesk
+- RustDesk features are additional capabilities
+- You can enable it later if interested
+
+## 🔧 Technical Questions
+
+### What programming language is NetArchon written in?
+
+**Python** - NetArchon is built entirely in Python, making it:
+- Easy to install and run
+- Highly portable across platforms
+- Simple to modify and extend
+- Well-supported with extensive libraries
+
+### Can I integrate NetArchon with other systems?
+
+**Yes!** NetArchon provides:
+- **REST API**: Full programmatic access
+- **WebSocket API**: Real-time data streaming
+- **Webhook Support**: Send alerts to external systems
+- **Database Access**: Direct SQLite database access
+- **Plugin Architecture**: Extensible design for custom integrations
+
+### How do I backup my NetArchon configuration?
+
+**Simple Backup:**
+```bash
+# Backup configuration and data
+cp -r ~/.netarchon ~/.netarchon.backup
+cp config.yaml config.yaml.backup
+cp data/netarchon.db data/netarchon.db.backup
 ```
 
-### Can I integrate with external monitoring systems?
+**Automated Backup:**
+NetArchon can automatically backup configurations and create restore points.
 
-Yes, NetArchon can export metrics to various formats and systems:
-- JSON files for custom processing
-- Webhook notifications
-- Syslog messages
-- Custom notification handlers
+### Can I run multiple instances of NetArchon?
 
-## Performance and Scalability
+**Yes, but typically not needed:**
+- One instance can monitor multiple networks
+- Multiple instances can run on different ports
+- Useful for managing separate network segments
+- Each instance needs its own configuration
 
-### How many devices can NetArchon handle?
+### How do I update NetArchon?
 
-NetArchon's scalability depends on several factors:
-- **Hardware resources**: CPU, memory, network bandwidth
-- **Device response times**: Faster devices allow higher throughput
-- **Operation types**: Simple commands vs. complex configurations
-- **Concurrency settings**: Number of parallel connections
-
-Typical performance:
-- **Small deployments**: 10-50 devices
-- **Medium deployments**: 50-200 devices
-- **Large deployments**: 200+ devices (with proper tuning)
-
-### How do I optimize performance?
-
-1. **Tune connection pooling**:
-   ```python
-   ssh_connector = SSHConnector(pool_size=20, pool_timeout=300)
-   ```
-
-2. **Use batch operations**:
-   ```python
-   results = command_executor.execute_batch_commands(device, commands)
-   ```
-
-3. **Optimize concurrency**:
-   ```yaml
-   core:
-     max_concurrent_connections: 15
-   ```
-
-4. **Use circuit breakers**:
-   ```python
-   circuit_breaker = CircuitBreaker("operations", failure_threshold=3)
-   ```
-
-### What about memory usage?
-
-NetArchon is designed to be memory-efficient:
-- Connection pooling reduces memory overhead
-- Streaming output processing for large command outputs
-- Automatic cleanup of idle connections
-- Configurable data retention policies
-
-### Can I run NetArchon in a distributed setup?
-
-While NetArchon doesn't include built-in distributed capabilities, you can:
-- Run multiple NetArchon instances
-- Use message queues for coordination
-- Implement custom load balancing
-- Share configuration and results via databases
-
-## Security
-
-### How secure is NetArchon?
-
-NetArchon follows security best practices:
-- **Encrypted connections**: All communication via SSH
-- **Credential protection**: Secure storage and handling of credentials
-- **Input validation**: Validation of all user inputs
-- **Audit logging**: Comprehensive logging of all operations
-- **Least privilege**: Encourages minimal required permissions
-
-### How should I store credentials?
-
-Best practices for credential storage:
-
-1. **Environment variables**:
-   ```bash
-   export DEVICE_USERNAME=admin
-   export DEVICE_PASSWORD=secret
-   ```
-
-2. **Configuration files** (with restricted permissions):
-   ```bash
-   chmod 600 ~/.netarchon/config.yaml
-   ```
-
-3. **Key-based authentication** (preferred):
-   ```python
-   connection_params = ConnectionParameters(
-       username="admin",
-       private_key_path="~/.ssh/id_rsa"
-   )
-   ```
-
-4. **External secret management** (for production):
-   - HashiCorp Vault
-   - AWS Secrets Manager
-   - Azure Key Vault
-
-### What permissions do I need on devices?
-
-Minimum required permissions:
-- **Read access**: For monitoring and information gathering
-- **Configuration access**: For configuration management (privilege level 15 on Cisco)
-- **Enable access**: For privileged commands
-
-### How do I audit NetArchon operations?
-
-NetArchon provides comprehensive logging:
-
-```python
-from netarchon.utils.logger import configure_logging
-
-configure_logging(
-    level="INFO",
-    file_path="/var/log/netarchon/audit.log",
-    json_format=True
-)
+**Simple Update:**
+```bash
+pip install --upgrade netarchon
 ```
 
-Log entries include:
-- Timestamp and user information
-- Device and operation details
-- Success/failure status
-- Error messages and stack traces
-
-## Development and Customization
-
-### How do I extend NetArchon for custom use cases?
-
-NetArchon is designed to be extensible:
-
-1. **Custom device types**: Add support for new vendors
-2. **Custom metrics**: Define device-specific metrics
-3. **Custom parsers**: Parse command output in custom formats
-4. **Custom notifications**: Implement custom alert handlers
-5. **Plugins**: Create reusable extensions
-
-### Can I contribute to NetArchon?
-
-Yes! We welcome contributions:
-- Bug fixes and improvements
-- New device support
-- Documentation updates
-- Example scripts
-- Test coverage improvements
-
-See the [Contributing Guide](contributing.md) for details.
-
-### How do I write tests for my customizations?
-
-NetArchon includes comprehensive testing utilities:
-
-```python
-import pytest
-from unittest.mock import Mock
-from netarchon.core.ssh_connector import SSHConnector
-
-def test_custom_functionality():
-    # Use mocks for testing
-    mock_device = Mock()
-    mock_device.hostname = "test-device"
-    
-    # Test your custom code
-    result = your_custom_function(mock_device)
-    assert result is not None
+**From Source:**
+```bash
+cd AINetwork
+git pull origin main
+pip install -r requirements.txt
 ```
 
-### What's the development roadmap?
+## 🌐 Network Compatibility
 
-Planned features:
-- Web-based management interface
-- REST API for remote management
-- Plugin system for extensions
+### What internet providers does NetArchon work with?
+
+**All of them!** NetArchon works with any internet provider:
+- Xfinity/Comcast
+- AT&T
+- Verizon
+- Spectrum
+- Local ISPs
+- Fiber, cable, DSL, satellite
+
+### What router brands are supported?
+
+**Popular Home Routers:**
+- Netgear (including Orbi mesh)
+- Linksys
+- ASUS
+- TP-Link
+- D-Link
+- Belkin
+
+**Professional Equipment:**
+- Cisco
+- Juniper
+- Arista
+- Ubiquiti
+- MikroTik
+
+### Does NetArchon work with mesh networks?
+
+**Yes!** NetArchon fully supports mesh networks:
+- Monitors main router and satellites
+- Tracks device connections across mesh nodes
+- Monitors backhaul connections
+- Supports popular mesh systems (Orbi, Eero, etc.)
+
+### Can NetArchon monitor VLANs?
+
+**Yes!** For advanced users:
+- VLAN discovery and monitoring
+- Inter-VLAN traffic analysis
+- VLAN configuration management
+- Security monitoring across VLANs
+
+## 🚀 Performance & Scaling
+
+### How much system resources does NetArchon use?
+
+**Typical Usage:**
+- **CPU**: 1-5% on average
+- **RAM**: 200-500MB
+- **Disk**: 100MB for application, variable for data
+- **Network**: Minimal bandwidth usage
+
+### How many devices can NetArchon monitor?
+
+**Practical Limits:**
+- **Home Networks**: 50-100 devices easily
+- **Small Business**: 200-500 devices
+- **Large Networks**: 1000+ devices (with proper hardware)
+
+Performance depends on your computer's specifications and monitoring frequency.
+
+### Can I monitor multiple locations?
+
+**Yes!** NetArchon can monitor:
+- Multiple network segments
+- Remote locations (with VPN)
+- Branch offices
+- Multiple homes/properties
+
+## 🆘 Troubleshooting
+
+### NetArchon won't start - what do I do?
+
+**Common Solutions:**
+1. Check if Python is installed: `python --version`
+2. Reinstall NetArchon: `pip install --upgrade netarchon`
+3. Check for port conflicts: Try a different port
+4. Review error messages in the terminal
+
+**Get Help:**
+- Check the [Troubleshooting Guide](troubleshooting.md)
+- Search [GitHub Issues](https://github.com/diszay/AINetwork/issues)
+- Ask in [GitHub Discussions](https://github.com/diszay/AINetwork/discussions)
+
+### My devices show as offline but they're working
+
+**Common Causes:**
+- Incorrect IP addresses
+- Firewall blocking NetArchon
+- Device doesn't support monitoring protocol
+- Network connectivity issues
+
+**Solutions:**
+- Verify device IP addresses
+- Check firewall settings
+- Test manual connection to device
+- Review NetArchon logs for errors
+
+### I'm not receiving email alerts
+
+**Check These:**
+1. Email address entered correctly
+2. SMTP settings configured properly
+3. Check spam/junk folder
+4. Test email settings
+5. Verify internet connectivity
+
+## 🤝 Community & Support
+
+### How do I get help with NetArchon?
+
+**Self-Help Resources:**
+1. [Installation Guide](installation.md)
+2. [User Guide](user_guide.md)
+3. [Troubleshooting Guide](troubleshooting.md)
+4. [API Documentation](api_documentation.md)
+
+**Community Support:**
+- [GitHub Discussions](https://github.com/diszay/AINetwork/discussions) - Ask questions
+- [GitHub Issues](https://github.com/diszay/AINetwork/issues) - Report bugs
+- Community forums and chat groups
+
+### How can I contribute to NetArchon?
+
+**Everyone Can Help:**
+- Report bugs and issues
+- Suggest new features
+- Improve documentation
+- Share your experience
+
+**Technical Contributors:**
+- Fix bugs and add features
+- Write tests and documentation
+- Review code and help others
+- Create integrations and plugins
+
+See our [Contributing Guide](contributing.md) for details.
+
+### Is there commercial support available?
+
+**Currently:**
+NetArchon is a community-driven open-source project with community support through GitHub.
+
+**Future:**
+Commercial support options may be available in the future for enterprise users.
+
+## 🔮 Future Plans
+
+### What new features are planned?
+
+**Short Term:**
+- Enhanced RustDesk integration
+- Advanced security monitoring
+- Mobile-responsive dashboard
+- Additional device support
+
+**Long Term:**
+- AI-powered network optimization
+- Predictive failure detection
 - Advanced analytics and reporting
-- Integration with popular monitoring systems
+- Cloud integration options
 
-## Troubleshooting
+### Can I request new features?
 
-### Why can't I connect to my device?
-
-Common connection issues:
-
-1. **Network connectivity**: Test with `ping` and `telnet`
-2. **SSH service**: Ensure SSH is enabled on the device
-3. **Authentication**: Verify credentials and permissions
-4. **Firewall**: Check for blocking rules
-5. **SSH configuration**: Verify SSH settings on device
-
-### Commands are timing out, what should I do?
-
-1. **Increase timeout**:
-   ```python
-   result = command_executor.execute_command(device, command, timeout=120)
-   ```
-
-2. **Disable paging**:
-   ```python
-   command_executor.execute_command(device, "terminal length 0")
-   ```
-
-3. **Use batch commands**:
-   ```python
-   commands = ["command1", "command2", "command3"]
-   results = command_executor.execute_batch_commands(device, commands)
-   ```
-
-### How do I enable debug logging?
-
-```python
-from netarchon.utils.logger import configure_logging
-
-configure_logging(level="DEBUG", console=True)
-```
-
-### My configuration deployment failed, how do I recover?
-
-NetArchon automatically creates backups before configuration changes:
-
-```python
-# Manual rollback
-config_manager.rollback_config(device, backup_path)
-
-# Or restore from backup file
-with open(backup_path, 'r') as f:
-    backup_config = f.read()
-config_manager.deploy_config(device, backup_config)
-```
-
-### How do I report bugs or request features?
-
-1. **Check existing issues**: Search [GitHub Issues](https://github.com/yourusername/netarchon/issues)
-2. **Create a new issue**: Provide detailed information including:
-   - NetArchon version
-   - Python version
-   - Device type and OS version
-   - Complete error messages
-   - Minimal code example
-3. **Join discussions**: Participate in [GitHub Discussions](https://github.com/yourusername/netarchon/discussions)
-
-### Where can I get help?
-
-- **Documentation**: [User Guide](user_guide.md), [API Reference](api_reference.md)
-- **Examples**: Check the [examples](../examples/) directory
-- **Community**: [GitHub Discussions](https://github.com/yourusername/netarchon/discussions)
-- **Issues**: [GitHub Issues](https://github.com/yourusername/netarchon/issues)
-- **Email**: support@netarchon.dev
+**Absolutely!** We welcome feature requests:
+1. Check existing [GitHub Issues](https://github.com/diszay/AINetwork/issues)
+2. Create a new feature request
+3. Participate in [GitHub Discussions](https://github.com/diszay/AINetwork/discussions)
+4. Contribute code if you're technical
 
 ---
 
-## Still have questions?
+## 📞 Still Have Questions?
 
-If your question isn't answered here:
+**If you can't find your answer here:**
 
-1. Check the [User Guide](user_guide.md) for detailed usage information
-2. Review the [API Reference](api_reference.md) for technical details
-3. Look at [examples](../examples/) for practical implementations
-4. Search or create an issue on [GitHub](https://github.com/yourusername/netarchon)
-5. Join the community discussions
+1. **Search the documentation** - Check all our guides
+2. **Search GitHub Issues** - Someone may have asked before
+3. **Ask the community** - Post in GitHub Discussions
+4. **Report bugs** - Create a GitHub Issue
+5. **Contact maintainers** - For urgent issues
 
-We're here to help make your network automation journey successful!
+**When asking for help, please include:**
+- Your operating system
+- Python version
+- NetArchon version
+- Complete error messages
+- Steps to reproduce the problem
+
+**We're here to help!** The NetArchon community is friendly and welcoming to users of all skill levels.
