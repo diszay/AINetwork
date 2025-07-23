@@ -13,8 +13,8 @@ from pathlib import Path
 from netarchon.core.config_manager import ConfigManager
 from netarchon.core.command_executor import CommandExecutor
 from netarchon.core.ssh_connector import SSHConnector
-from netarchon.models.device import Device, DeviceType
-from netarchon.models.connection import ConnectionParameters
+from netarchon.models.device import DeviceInfo, DeviceType, DeviceStatus
+from netarchon.models.connection import AuthenticationCredentials
 from netarchon.utils.exceptions import ConfigurationError
 
 
@@ -35,14 +35,22 @@ TEST_DEVICE_TYPE = DeviceType(os.environ.get('NETARCHON_TEST_DEVICE_TYPE', 'cisc
 @pytest.fixture
 def test_device():
     """Create a test device for integration testing."""
-    return Device(
-        name="test-device",
-        hostname=TEST_DEVICE_HOST,
+    return DeviceInfo(
+        hostname="test-device",
+        ip_address=TEST_DEVICE_HOST,
         device_type=TEST_DEVICE_TYPE,
-        connection_params=ConnectionParameters(
-            username=TEST_DEVICE_USERNAME,
-            password=TEST_DEVICE_PASSWORD
-        )
+        vendor="test",
+        model="test-model",
+        os_version="1.0",
+        status=DeviceStatus.UNKNOWN
+    )
+
+@pytest.fixture  
+def test_credentials():
+    """Create test credentials for integration testing."""
+    return AuthenticationCredentials(
+        username=TEST_DEVICE_USERNAME,
+        password=TEST_DEVICE_PASSWORD
     )
 
 

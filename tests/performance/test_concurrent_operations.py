@@ -13,10 +13,10 @@ from unittest import mock
 
 from netarchon.core.ssh_connector import SSHConnector
 from netarchon.core.command_executor import CommandExecutor
-from netarchon.core.device_manager import DeviceManager
-from netarchon.models.device import Device, DeviceType
-from netarchon.models.connection import ConnectionParameters
-from netarchon.utils.exceptions import ConnectionError, CommandError
+from netarchon.core.device_manager import DeviceDetector
+from netarchon.models.device import DeviceInfo, DeviceType, DeviceStatus
+from netarchon.models.connection import AuthenticationCredentials
+from netarchon.utils.exceptions import ConnectionError, CommandExecutionError
 
 
 # Skip these tests if no performance test environment is available
@@ -35,14 +35,14 @@ def create_test_devices(count=5):
     device_type = DeviceType(os.environ.get('NETARCHON_TEST_DEVICE_TYPE', 'cisco_ios'))
     
     for i in range(count):
-        device = Device(
-            name=f"test-device-{i+1}",
-            hostname=base_host,  # In real tests, use different IPs
+        device = DeviceInfo(
+            hostname=f"test-device-{i+1}",
+            ip_address=base_host,  # In real tests, use different IPs
             device_type=device_type,
-            connection_params=ConnectionParameters(
-                username=username,
-                password=password
-            )
+            vendor="test",
+            model="test-model",
+            os_version="1.0",
+            status=DeviceStatus.UNKNOWN
         )
         devices.append(device)
     
