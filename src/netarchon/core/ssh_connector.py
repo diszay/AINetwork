@@ -23,6 +23,8 @@ from ..utils.exceptions import (
     TimeoutError
 )
 from ..utils.logger import get_logger
+from ..utils.circuit_breaker import circuit_breaker_manager, CircuitBreakerConfig
+from ..utils.retry_manager import retry_manager_registry, create_network_retry_config
 
 
 class ConnectionPool:
@@ -187,7 +189,7 @@ class ConnectionPool:
 
 
 class SSHConnector:
-    """Core SSH connection functionality."""
+    """Core SSH connection functionality with circuit breaker protection."""
     
     def __init__(self, timeout: int = 30, retry_attempts: int = 3):
         """Initialize SSH connector.
@@ -199,6 +201,14 @@ class SSHConnector:
         self.timeout = timeout
         self.retry_attempts = retry_attempts
         self.logger = get_logger(f"{__name__}.SSHConnector")
+        
+        # Initialize circuit breaker for SSH connections
+        cb_config = CircuitBreakerConfig(
+            failure_threshold=5,
+            recovery_timeout=60,
+            success_threshold=3
+        )
+        self.circuit_breaker = circuit_breaker_manager.get_circuit_breaker("ssh_connections", cb_config)
         
     def connect(self, 
                 host: str, 
@@ -226,6 +236,23 @@ class SSHConnector:
             
         self.logger.info(f"Attempting SSH connection to {host}:{port}", 
                         device_id=device_id)
+        
+        # Use circuit breaker protection for connection attempts
+        return self.circuit_breaker.call(self._connect_internal, host, credentials, port, device_id)
+    
+    def _connect_internal(self, host: str, credentials: AuthenticationCredentials, 
+                         port: int, device_id: str) -> ConnectionInfo:
+        """Internal connection method with retry logic.
+        
+        Args:
+            host: Target host IP address or hostname
+            credentials: Authentication credentials
+            port: SSH port
+            device_id: Device identifier
+            
+        Returns:
+            ConnectionInfo object with connection details
+        """
         
         connection_info = ConnectionInfo(
             device_id=device_id,

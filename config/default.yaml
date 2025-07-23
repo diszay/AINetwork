@@ -1,0 +1,59 @@
+# NetArchon Default Configuration
+# This file contains the default settings for NetArchon
+
+environment: development
+debug: false
+
+# Database Configuration
+database:
+  type: sqlite
+  host: localhost
+  port: 5432
+  database: netarchon
+  username: ""
+  password: ""
+  connection_pool_size: 10
+  connection_timeout: 30
+
+# Logging Configuration
+logging:
+  level: INFO
+  format: structured
+  file_path: null
+  max_file_size: 10485760  # 10MB
+  backup_count: 5
+  console_output: true
+
+# SSH Configuration
+ssh:
+  default_timeout: 30
+  max_connections: 50
+  idle_timeout: 300
+  retry_attempts: 3
+  connection_pool_enabled: true
+
+# Monitoring Configuration
+monitoring:
+  collection_interval: 60
+  storage_backend: memory
+  retention_days: 30
+  alert_cooldown_minutes: 15
+  enable_alerting: true
+
+# Circuit Breaker Configuration
+circuit_breaker:
+  failure_threshold: 5
+  recovery_timeout: 60
+  success_threshold: 3
+  enabled: true
+
+# Retry Configuration
+retry:
+  max_attempts: 3
+  base_delay: 1.0
+  max_delay: 60.0
+  strategy: exponential_backoff
+  jitter_enabled: true
+
+# Custom Settings
+custom_settings: {}

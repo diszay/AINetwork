@@ -1,0 +1,47 @@
+# NetArchon Development Configuration
+# Settings optimized for development environment
+
+environment: development
+debug: true
+
+# Development Database (SQLite for simplicity)
+database:
+  type: sqlite
+  database: netarchon_dev.db
+
+# Development Logging (More verbose)
+logging:
+  level: DEBUG
+  console_output: true
+  file_path: logs/netarchon_dev.log
+
+# Development SSH (More permissive timeouts)
+ssh:
+  default_timeout: 60
+  max_connections: 10
+  retry_attempts: 2
+
+# Development Monitoring (Faster collection for testing)
+monitoring:
+  collection_interval: 30
+  storage_backend: memory
+  retention_days: 7
+  enable_alerting: false
+
+# Development Circuit Breaker (More lenient)
+circuit_breaker:
+  failure_threshold: 10
+  recovery_timeout: 30
+  enabled: false
+
+# Development Retry (Faster for testing)
+retry:
+  max_attempts: 2
+  base_delay: 0.5
+  max_delay: 10.0
+
+# Development Custom Settings
+custom_settings:
+  enable_debug_endpoints: true
+  mock_devices: true
+  test_mode: true

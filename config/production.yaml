@@ -1,0 +1,62 @@
+# NetArchon Production Configuration
+# Settings optimized for production environment
+
+environment: production
+debug: false
+
+# Production Database (PostgreSQL recommended)
+database:
+  type: postgresql
+  host: localhost
+  port: 5432
+  database: netarchon_prod
+  username: netarchon_user
+  password: ""  # Set via environment variable NETARCHON_DB_PASSWORD
+  connection_pool_size: 20
+  connection_timeout: 30
+
+# Production Logging (Structured logging to file)
+logging:
+  level: INFO
+  format: structured
+  file_path: /var/log/netarchon/netarchon.log
+  max_file_size: 52428800  # 50MB
+  backup_count: 10
+  console_output: false
+
+# Production SSH (Higher capacity)
+ssh:
+  default_timeout: 30
+  max_connections: 100
+  idle_timeout: 600
+  retry_attempts: 3
+  connection_pool_enabled: true
+
+# Production Monitoring (Persistent storage)
+monitoring:
+  collection_interval: 60
+  storage_backend: database
+  retention_days: 90
+  alert_cooldown_minutes: 15
+  enable_alerting: true
+
+# Production Circuit Breaker (Strict fault tolerance)
+circuit_breaker:
+  failure_threshold: 5
+  recovery_timeout: 60
+  success_threshold: 3
+  enabled: true
+
+# Production Retry (Conservative settings)
+retry:
+  max_attempts: 3
+  base_delay: 2.0
+  max_delay: 120.0
+  strategy: exponential_backoff
+  jitter_enabled: true
+
+# Production Custom Settings
+custom_settings:
+  enable_metrics_export: true
+  enable_health_checks: true
+  security_mode: strict
