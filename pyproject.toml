@@ -1,0 +1,153 @@
+[build-system]
+requires = ["setuptools>=45", "wheel", "setuptools_scm[toml]>=6.2"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "netarchon"
+dynamic = ["version"]
+description = "NetArchon AI Network Engineer - Autonomous network monitoring and management"
+readme = "README.md"
+license = {text = "MIT"}
+authors = [
+    {name = "NetArchon Development Team", email = "dev@netarchon.ai"},
+]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: System Administrators", 
+    "Intended Audience :: Information Technology",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10", 
+    "Programming Language :: Python :: 3.11",
+    "Topic :: System :: Networking :: Monitoring",
+    "Topic :: System :: Systems Administration",
+]
+keywords = ["network", "monitoring", "automation", "ssh", "device management"]
+requires-python = ">=3.9"
+dependencies = [
+    "paramiko>=2.9.0,<4.0.0",
+    "pyyaml>=6.0,<7.0.0",
+    "requests>=2.25.0",
+    "cryptography>=3.4.0",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=7.0.0,<9.0.0",
+    "pytest-cov>=4.0.0,<6.0.0", 
+    "pytest-asyncio>=0.21.0,<1.0.0",
+    "pytest-mock>=3.6.0",
+    "black>=22.0.0,<25.0.0",
+    "flake8>=4.0.0,<7.0.0",
+    "mypy>=1.0.0,<2.0.0",
+]
+web = [
+    "streamlit>=1.28.0",
+    "pandas>=1.3.0",
+    "plotly>=5.0.0", 
+    "altair>=4.2.0",
+]
+security = [
+    "keyring>=23.0.0",
+    "cryptography>=3.4.0",
+]
+all = [
+    "netarchon[dev,web,security]"
+]
+
+[project.urls]
+Homepage = "https://github.com/diszay/AINetwork"
+Repository = "https://github.com/diszay/AINetwork.git"
+Issues = "https://github.com/diszay/AINetwork/issues"
+Documentation = "https://github.com/diszay/AINetwork/docs"
+
+[project.scripts]
+netarchon = "netarchon.cli:main"
+
+[tool.setuptools]
+package-dir = {"" = "src"}
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.setuptools.package-data]
+netarchon = ["config/*.yaml", "web/pages/*.py", "templates/*.html"]
+
+[tool.setuptools_scm]
+version_scheme = "guess-next-dev"
+local_scheme = "node-and-date"
+
+[tool.pytest.ini_options]
+minversion = "7.0"
+addopts = "-ra -q --strict-markers --strict-config"
+testpaths = ["tests"]
+python_files = ["test_*.py", "*_test.py"]
+python_classes = ["Test*"]
+python_functions = ["test_*"]
+markers = [
+    "slow: marks tests as slow (deselect with '-m \"not slow\"')",
+    "integration: marks tests as integration tests",
+    "unit: marks tests as unit tests",
+    "performance: marks tests as performance tests",
+]
+
+[tool.coverage.run]
+source = ["src/netarchon"]
+omit = [
+    "*/tests/*",
+    "*/test_*",
+    "setup.py",
+]
+
+[tool.coverage.report]
+exclude_lines = [
+    "pragma: no cover",
+    "def __repr__",
+    "raise AssertionError",
+    "raise NotImplementedError",
+    "if __name__ == .__main__.:",
+]
+
+[tool.black]
+line-length = 100
+target-version = ['py39', 'py310', 'py311']
+include = '\.pyi?$'
+extend-exclude = '''
+/(
+  # directories
+  \.eggs
+  | \.git
+  | \.mypy_cache
+  | \.pytest_cache
+  | \.venv
+  | build
+  | dist
+)/
+'''
+
+[tool.mypy]
+python_version = "3.9"
+warn_return_any = true
+warn_unused_configs = true
+disallow_untyped_defs = false
+disallow_incomplete_defs = false
+check_untyped_defs = true
+disallow_untyped_decorators = false
+no_implicit_optional = true
+warn_redundant_casts = true
+warn_unused_ignores = true
+warn_no_return = true
+warn_unreachable = true
+strict_equality = true
+
+[[tool.mypy.overrides]]
+module = [
+    "paramiko.*",
+    "pytest.*",
+    "streamlit.*",
+    "pandas.*",
+    "plotly.*",
+]
+ignore_missing_imports = true
